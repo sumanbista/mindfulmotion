@@ -1,15 +1,23 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import { Outlet } from 'react-router-dom';
 
-export default function Layout({ children }) {
+export default function Layout() {
   return (
-    <div className="flex min-h-screen">
-      {/* Sidebar remains visible */}
-      <Sidebar />
-      <div className="flex-1 flex flex-col bg-gray-50">
-        <Navbar />
-        <main className="flex-1 p-4">{children}</main>
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar with fixed height */}
+      <div className="h-full">
+        <Sidebar />
+      </div>
+      
+      {/* Main content area with independent scrolling */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* <Navbar /> */}
+        {/* Content area with scrolling */}
+        <main className="flex-1 overflow-auto p-4">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

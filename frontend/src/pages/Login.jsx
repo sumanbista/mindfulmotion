@@ -1,29 +1,39 @@
 // src/pages/Login.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import fakeDB from '../data/fakeDB';
+import { useToast } from '../contexts/ToastContext';
 
 export default function Login() {
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-
+  const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    // "Find" user in fakeDB
-    const user = fakeDB.users.find((u) => u.email === email && u.password === password);
-    if (!user) {
-      alert('Invalid email or password');
-    } else {
-      // Save user to localStorage to simulate a login
-      localStorage.setItem('loggedInUser', JSON.stringify(user));
-
-      alert(`Welcome back, ${user.firstName}!`);
-      // Redirect to Home
-      navigate('/');
+    try {
+      const response = await fetch('http://localhost:5000/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // Store the JWT token in localStorage
+        localStorage.setItem('token', data.token);
+        showSuccess(`Welcome back, ${email}!`);
+        navigate('/');
+      } else {
+        showError(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error(error);
+      showError('An error occurred during login.');
     }
+
   };
 
   return (

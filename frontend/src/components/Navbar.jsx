@@ -3,7 +3,7 @@ import React from 'react';
 export default function Navbar() {
   return (
     <div className="flex items-center justify-between px-6 py-4 bg-white shadow-md border-b border-gray-200">
-      <div className="text-xl font-bold text-gray-700">Welcome to Mindful Motion</div>
+      <div className="text-xl font-bold text-gray-700"></div>
       <div>
         <input 
           type="text" 

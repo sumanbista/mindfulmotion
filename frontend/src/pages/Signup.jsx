@@ -1,37 +1,44 @@
 // src/pages/Signup.jsx
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; 
-import fakeDB from '../data/fakeDB';
+import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
+
+
 
 export default function Signup() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName]   = useState('');
   const [email, setEmail]         = useState('');
   const [password, setPassword]   = useState('');
+  const { showSuccess, showError } = useToast();
 
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
-    // Simple check to see if email already exists in fakeDB
-    const existingUser = fakeDB.users.find((user) => user.email === email);
-    if (existingUser) {
-      alert('User with this email already exists!');
-      return;
+    try {
+      const response = await fetch('http://localhost:5000/api/users/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ firstName, lastName, email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        // Store the JWT token in localStorage
+        localStorage.setItem('token', data.token);
+        showSuccess('Signup successful!');
+        navigate('/');
+      } else {
+        showError(data.message || 'Signup failed');
+      }
+    } catch (error) {
+      console.error(error);
+      showError('An error occurred during signup.');
     }
-
-    // "Add" user to our fake database
-    const newUser = { firstName, lastName, email, password };
-    fakeDB.users.push(newUser);
-
-    // Simulate logging in the new user
-    localStorage.setItem('loggedInUser', JSON.stringify(newUser));
-
-    alert('Signup successful! You are now logged in.');
-    
-    // Redirect to Home
-    navigate('/');
   };
 
   return (
