@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  // Additional fields: role, preferences, etc.
+  
 }, { timestamps: true });
 
 // Hash password before saving the user
