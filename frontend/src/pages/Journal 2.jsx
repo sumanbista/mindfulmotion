@@ -6,7 +6,6 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './Journal.css';
 
-
 const Journal = () => {
   const [entry, setEntry] = useState('');
   const [mood, setMood] = useState('');
@@ -106,7 +105,6 @@ const Journal = () => {
           New Quote
         </button>
       </motion.div>
-
 
       {/* Daily Journal Entry */}
       <form onSubmit={handleSubmit}>

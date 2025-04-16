@@ -9,6 +9,7 @@ import Signup from './pages/Signup';
 import Settings from './pages/Setting';
 import Community from './pages/Community';
 import Journal from './pages/Journal';
+
 import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
