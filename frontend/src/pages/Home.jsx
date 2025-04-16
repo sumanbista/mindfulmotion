@@ -109,14 +109,14 @@ export default function Home() {
             onButtonClick={() => navigate("/progress")}
           />
 
-          {/* Daily */}
+          {/* Journal */}
           <FeatureCard
             image="/images/home/daily.jpg"  // Using image from public/images/home
-            title="Daily"
+            title="Journal"
             subtitle="Get inspired with our daily content."
             progress={80}
             buttonText="Explore"
-            onButtonClick={() => navigate("/daily")}
+            onButtonClick={() => navigate("/Journal")}
           />
         </div>
 

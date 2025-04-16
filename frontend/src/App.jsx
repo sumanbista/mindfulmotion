@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Settings from './pages/Setting';
 import Community from './pages/Community';
+import Journal from './pages/Journal';
 import { ToastProvider } from './contexts/ToastContext';
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
             <Route path="/meditation" element={<Meditation />} />
             <Route path="/setting" element={<Settings />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/journal" element={<Journal/>} />
           </Route>
 
           <Route element={<AuthLayout />}>
