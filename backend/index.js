@@ -7,6 +7,10 @@ const mongoose = require('mongoose');
 const userRoutes = require('./routes/userRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const communityRoutes = require('./routes/communityRoutes');
+// const assessmentRoutes = require('./routes/assessmentRoutes');
+const assessmentAnalysisRoutes = require('./routes/assessmentAnalysis');
+
+const UserAssessment = require('./models/UserAssessment');
 
 const app = express();
 
@@ -40,9 +44,9 @@ const categoryVideos = {
     "Sh-YrLYC7p8"  // Deep Sleep Music
   ],
   energy: [
-    "C5L8Z3qA1DA", 
+    "C5L8Z3qA1DA",
     "Ei0QHQbOOFU",
-    "3RxXiFgkxGc" 
+    "3RxXiFgkxGc"
   ],
   mindfulness: [
     "Rx5X-fo_fEI", // Mindful Breathing Practice
@@ -56,12 +60,12 @@ app.get('/api/videos/:category', (req, res) => {
   try {
     const category = req.params.category;
     console.log(`Received request for category: ${category}`);
-    
+
     if (categoryVideos[category]) {
       console.log(`Found ${categoryVideos[category].length} videos for ${category}:`, categoryVideos[category]);
       return res.json(categoryVideos[category]);
     }
-    
+
     console.log(`Category ${category} not found, sending all videos`);
     const allVideos = Object.values(categoryVideos).flat();
     res.json(allVideos);
@@ -97,6 +101,30 @@ app.get('/api/quote', async (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/community', communityRoutes);
+
+
+// Assessment Route (for collecting personality and mental health data)
+// app.use('/api/assessment', assessmentRoutes);  // Assuming the assessmentRoutes are handled in a separate file
+app.use('/api/assessment', assessmentAnalysisRoutes);
+
+// Route to get past user assessments
+app.get('/api/assessment/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const assessments = await UserAssessment.find({ userId }).sort({ createdAt: -1 });
+
+    if (!assessments.length) {
+      return res.status(404).json({ message: 'No assessments found for this user.' });
+    }
+
+    res.json(assessments);
+  } catch (error) {
+    console.error('Error fetching assessments:', error);
+    res.status(500).json({ message: 'Error fetching assessments.' });
+  }
+});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

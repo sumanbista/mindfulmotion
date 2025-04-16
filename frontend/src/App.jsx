@@ -9,6 +9,7 @@ import Signup from './pages/Signup';
 import Settings from './pages/Setting';
 import Community from './pages/Community';
 import { ToastProvider } from './contexts/ToastContext';
+import AssessmentPage from './pages/AssessmentPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/meditation" element={<Meditation />} />
             <Route path="/setting" element={<Settings />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/progress" element={<AssessmentPage />} />
           </Route>
 
           <Route element={<AuthLayout />}>
