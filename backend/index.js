@@ -9,8 +9,8 @@ const sessionRoutes = require('./routes/sessionRoutes');
 const communityRoutes = require('./routes/communityRoutes');
 // const assessmentRoutes = require('./routes/assessmentRoutes');
 const assessmentAnalysisRoutes = require('./routes/assessmentAnalysis');
-
 const UserAssessment = require('./models/UserAssessment');
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
@@ -26,67 +26,6 @@ mongoose.connect(process.env.MONGO_URI, {
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// Update video list to be organized by category
-const categoryVideos = {
-  relax: [
-    "ZToicYcHIOU", // Relaxing Music with Nature Sounds
-    "WZKW2Hq2fks", // Calming Sleep Music
-    "lFcSrYw-ARY"  // Deep Relaxation Meditation
-  ],
-  focus: [
-    "5qap5aO4i9A", // Lofi beats to study/work
-    "dQCZob-0JAw", // Focus Music for Work and Studying
-    "5GSMTqBMPHM"  // Concentration Music
-  ],
-  sleep: [
-    "2K4T9HmEhWE",
-    "yu-YmyvNtb8",
-    "Sh-YrLYC7p8"  // Deep Sleep Music
-  ],
-  energy: [
-    "C5L8Z3qA1DA",
-    "Ei0QHQbOOFU",
-    "3RxXiFgkxGc"
-  ],
-  mindfulness: [
-    "Rx5X-fo_fEI", // Mindful Breathing Practice
-    "MIr3RsUWrdo", // Guided Mindfulness Meditation 
-    "caq8XpjAswo"  // Body Scan Meditation
-  ]
-};
-
-// Routes
-app.get('/api/videos/:category', (req, res) => {
-  try {
-    const category = req.params.category;
-    console.log(`Received request for category: ${category}`);
-
-    if (categoryVideos[category]) {
-      console.log(`Found ${categoryVideos[category].length} videos for ${category}:`, categoryVideos[category]);
-      return res.json(categoryVideos[category]);
-    }
-
-    console.log(`Category ${category} not found, sending all videos`);
-    const allVideos = Object.values(categoryVideos).flat();
-    res.json(allVideos);
-  } catch (error) {
-    console.error(`Error in /api/videos/${req.params.category}:`, error);
-    res.status(500).json({ error: error.message });
-  }
-});
-// Keep the original endpoint for backward compatibility
-app.get('/api/embeds', (req, res) => {
-  try {
-    const allVideos = Object.values(categoryVideos).flat();
-    res.json(allVideos);
-  } catch (error) {
-    console.error('Error in /api/embeds:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'API is working!' });
-});
 
 app.get('/api/quote', async (req, res) => {
   try {
@@ -100,6 +39,7 @@ app.get('/api/quote', async (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
+console.log('→ mounting communityRoutes') 
 app.use('/api/community', communityRoutes);
 
 
@@ -124,6 +64,8 @@ app.get('/api/assessment/:userId', async (req, res) => {
     res.status(500).json({ message: 'Error fetching assessments.' });
   }
 });
+
+app.use('/api/aichat', chatRoutes);
 
 
 const PORT = process.env.PORT || 5000;

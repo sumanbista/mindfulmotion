@@ -10,6 +10,7 @@ import Settings from './pages/Setting';
 import Community from './pages/Community';
 import { ToastProvider } from './contexts/ToastContext';
 import AssessmentPage from './pages/AssessmentPage';
+import AIChat from './pages/AIChatPage'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/setting" element={<Settings />} />
             <Route path="/community" element={<Community />} />
             <Route path="/progress" element={<AssessmentPage />} />
+            <Route path="/chat"       element={<AIChat/>}/>
           </Route>
 
           <Route element={<AuthLayout />}>

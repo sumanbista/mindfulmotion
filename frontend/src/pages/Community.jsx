@@ -1,8 +1,14 @@
+// src/pages/Community.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PostCard from '../components/PostCard';
+import Leaderboard from '../components/Leaderboard';
+import BadgesPanel from '../components/BadgesPanel';
 
 export default function Community() {
+  // … all your existing state, effects, handlers …
+
+
   const [posts, setPosts] = useState([]);
   const [newPostContent, setNewPostContent] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
@@ -10,47 +16,57 @@ export default function Community() {
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({ posts: 0, comments: 0, lovesReceived: 0 });
+  const [leaderboard, setLeaderboard] = useState([]);
   const navigate = useNavigate();
 
   // Check authentication and fetch posts on component mount
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        setIsAuthenticated(true);
-        // If you have user info stored, you can load it here
-        const userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
-        setUser(userInfo);
-      } else {
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(localStorage.getItem('userInfo')) || {});
+    }
     fetchPosts();
   }, []);
 
+  
   // Fetch posts from the server
   const fetchPosts = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const response = await fetch('http://localhost:5000/api/community');
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const res = await fetch('http://localhost:5000/api/community');
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const data = await res.json();
       setPosts(data);
+      computeStats(data);
     } catch (err) {
-      console.error('Error fetching posts:', err);
+      console.error(err);
       setError('Failed to load community posts. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
+
+  function computeStats(allPosts) {
+    const byUser = {};
+    allPosts.forEach(post => {
+      const uid = post.userId;
+      if (!byUser[uid]) {
+        byUser[uid] = { name: post.author, posts: 0, comments: 0, lovesReceived: 0 };
+      }
+      byUser[uid].posts++;
+      byUser[uid].lovesReceived += post.loves;
+      post.comments.forEach(() => byUser[uid].comments++);
+    });
+    setStats(byUser[user?._id] || { posts: 0, comments: 0, lovesReceived: 0 });
+    const board = Object.values(byUser)
+      .map(u => ({ ...u, score: u.posts * 3 + u.comments + u.lovesReceived * 2 }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+    setLeaderboard(board);
+  }
 
   // Add a new post with authentication
   const handleAddPost = async () => {
@@ -92,7 +108,6 @@ export default function Community() {
       setError('Network error when creating post');
     }
   };
-
   // Add a comment to a post with authentication
   const handleAddComment = async (postId) => {
     if (newCommentText.trim() === '') return;
@@ -200,6 +215,7 @@ export default function Community() {
     }
   };
 
+
   return (
     <div className="min-h-screen p-6 bg-gray-50">
       <h1 className="text-3xl font-bold text-center mb-6">Community</h1>
@@ -245,8 +261,8 @@ export default function Community() {
           <button
             onClick={handleAddPost}
             className={`bg-blue-500 text-white px-6 py-2 rounded-full ${isAuthenticated
-                ? 'hover:bg-blue-600 transition-colors'
-                : 'opacity-50 cursor-not-allowed'
+              ? 'hover:bg-blue-600 transition-colors'
+              : 'opacity-50 cursor-not-allowed'
               }`}
             disabled={!isAuthenticated}
           >
@@ -263,40 +279,44 @@ export default function Community() {
         </div>
       )}
 
-      {/* Posts List */}
-      {!loading && posts.length === 0 ? (
-        <div className="max-w-2xl mx-auto text-center py-12 bg-white rounded-lg shadow">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No posts yet</h3>
-          <p className="mt-1 text-gray-500">Be the first to share your thoughts with the community.</p>
+      
+       {/* Main layout */}
+       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
+        {/* Left: Community Discussions */}
+        <div className="flex-1">
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4">Community Discussions</h2>
+            <div className="space-y-4">
+              {posts.length === 0 ? (
+                <div className="text-gray-500">No posts yet</div>
+              ) : (
+                posts.map(post => (
+                  <div
+                    key={post._id}
+                    className="bg-yellow-100 rounded-lg p-4"
+                  >
+                    <PostCard
+                      post={post}
+                      isAuthenticated={isAuthenticated}
+                      onToggleLove={handleToggleLove}
+                      onAddComment={() => handleAddComment(post._id)}
+                      currentUserId={user?._id}
+                      newCommentText={newCommentText}
+                      setNewCommentText={setNewCommentText}
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="max-w-2xl mx-auto space-y-6">
-          {posts.map((post) => (
-            <PostCard
-              key={post._id}
-              post={post}
-              isAuthenticated={isAuthenticated}
-              onToggleLove={handleToggleLove}
-              onAddComment={(postId) => {
-                if (isAuthenticated) {
-                  handleAddComment(postId);
-                } else {
-                  const confirmed = window.confirm('You must be logged in to comment. Would you like to go to the login page?');
-                  if (confirmed) {
-                    navigate('/login');
-                  }
-                }
-              }}
-              currentUserId={user?._id}
-              setNewCommentText={setNewCommentText}
-              newCommentText={newCommentText}
-            />
-          ))}
+
+        {/* Right: Leaderboard & Badges */}
+        <div className="w-full lg:w-1/3 space-y-6">
+          <Leaderboard board={leaderboard} />
+          <BadgesPanel stats={stats} />
         </div>
-      )}
+      </div>
     </div>
   );
 }

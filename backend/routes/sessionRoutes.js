@@ -54,43 +54,31 @@ router.get('/:sessionId/ratings', async (req, res) => {
 // POST a new rating or update existing one
 router.post('/:sessionId/ratings', async (req, res) => {
   try {
-    const { userId, rating } = req.body;
-    const sessionId = req.params.sessionId;
-    
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
-    
-    // Check if user already rated this session
-    const existingRating = await Rating.findOne({ sessionId, userId });
-    
-    if (existingRating) {
-      // Update existing rating
-      existingRating.value = rating;
-      await existingRating.save();
-    } else {
-      // Create new rating
-      await Rating.create({
-        sessionId,
-        userId,
-        value: rating
-      });
-    }
-    
-    // Calculate new average
-    const allRatings = await Rating.find({ sessionId });
-    const sum = allRatings.reduce((total, r) => total + r.value, 0);
-    const average = sum / allRatings.length;
-    
-    res.json({ 
-      success: true, 
-      averageRating: parseFloat(average.toFixed(1)),
-      count: allRatings.length
-    });
-  } catch (error) {
-    console.error('Error updating rating:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+    const sessionId = req.params.sessionId
+    const userId    = req.user._id         // ← comes from your JWT middleware
+    const { rating } = req.body
 
+    if (rating == null) {
+      return res.status(400).json({ message: 'Rating is required' })
+    }
+
+    // upsert Rating document
+    let existing = await Rating.findOne({ sessionId, userId })
+    if (existing) {
+      existing.value = rating
+      await existing.save()
+    } else {
+      await Rating.create({ sessionId, userId, value: rating })
+    }
+
+    // recompute average
+    const all = await Rating.find({ sessionId })
+    const avg = all.reduce((sum, r) => sum + r.value, 0) / all.length
+
+    res.json({ averageRating: parseFloat(avg.toFixed(1)), count: all.length })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
 module.exports = router;

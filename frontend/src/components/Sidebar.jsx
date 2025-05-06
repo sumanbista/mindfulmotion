@@ -7,10 +7,12 @@ import {
   AiOutlineHome,
   AiOutlineBarChart,
   AiOutlineLogout,
-  AiOutlineSetting
+  AiOutlineSetting,
+  AiOutlineRobot 
 } from 'react-icons/ai';
 import { GiMeditation } from 'react-icons/gi';
 import { FaUsers } from 'react-icons/fa';
+import { RiRobotLine } from 'react-icons/ri';
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -70,6 +72,15 @@ export default function Sidebar() {
           <FaUsers size={20} />
           <span>Community</span>
         </Link>
+
+        <Link
+          to="/chat"
+          className="flex items-center gap-2 px-4 py-2 rounded hover:bg-purple-500 transition-colors"
+        >
+          <RiRobotLine size={20} />
+          <span>AI Chat</span>
+        </Link>
+
       </nav>
 
       {/* Settings + Logout at the Bottom */}

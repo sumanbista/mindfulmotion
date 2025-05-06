@@ -5,56 +5,29 @@ const protect = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Get all posts
+console.log('→ mounting communityRoutes') 
 router.get('/', async (req, res) => {
   try {
-    // Get user ID from token if available
-    let currentUserId = null;
-    const authHeader = req.headers.authorization;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        currentUserId = decoded.userId;
-        console.log('Current user ID from token:', currentUserId);
-      } catch (error) {
-        console.log('Invalid token, continuing as guest');
-      }
-    }
-
-    // Fetch posts with user information
     const posts = await Post.find()
       .sort({ createdAt: -1 })
       .populate('userId', 'firstName lastName')
       .populate('comments.userId', 'firstName lastName')
       .lean();
 
-    // Process posts to add userLoved flag
-    const postsWithUserInfo = posts.map(post => {
-      // Check if current user has liked this post
-      let userLoved = false;
-      
-      if (currentUserId) {
-        // Convert all ObjectIds to strings for comparison
-        const loveIds = post.loves.map(id => id.toString());
-        userLoved = loveIds.includes(currentUserId.toString());
-      }
-      
-      return {
-        ...post,
-        author: post.userId ? `${post.userId.firstName} ${post.userId.lastName}` : 'Unknown User',
-        loves: post.loves.length, // Only send the count
-        userLoved, // This flag tells frontend if current user liked the post
-        comments: post.comments.map(comment => ({
-          ...comment,
-          author: comment.userId ? `${comment.userId.firstName} ${comment.userId.lastName}` : 'Unknown User',
-        }))
-      };
-    });
+    // format author, loves count, comments…
+    const formatted = posts.map(post => ({
+      ...post,
+      author: `${post.userId.firstName} ${post.userId.lastName}`,
+      loves: post.loves.length,
+      comments: post.comments.map(c => ({
+        ...c,
+        author: `${c.userId.firstName} ${c.userId.lastName}`
+      }))
+    }));
 
-    res.json(postsWithUserInfo);
-  } catch (error) {
-    console.error('Error fetching posts:', error);
+    res.json(formatted);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -63,34 +36,24 @@ router.get('/', async (req, res) => {
 router.post('/', protect, async (req, res) => {
   try {
     const { content } = req.body;
-    
-    if (!content || content.trim() === '') {
+    if (!content.trim()) {
       return res.status(400).json({ message: 'Post content is required' });
     }
-
-    // Create new post document
     const newPost = new Post({
-      userId: req.user.userId,
+      userId: req.user._id,
       content: content.trim(),
       comments: [],
       loves: []
     });
-
-    // Save to database
     await newPost.save();
 
-    // Get user info for the response
-    const user = await User.findById(req.user.userId);
-    
-    // Format response with author name
+    // build the response directly from req.user
     const postResponse = {
       ...newPost.toObject(),
-      _id: newPost._id,
-      author: user ? `${user.firstName} ${user.lastName}` : 'Unknown User',
+      author: `${req.user.firstName} ${req.user.lastName}`,
       userLoved: false,
       comments: []
     };
-
     res.status(201).json(postResponse);
   } catch (error) {
     console.error('Error creating post:', error);
@@ -117,25 +80,19 @@ router.post('/:postId/comments', protect, async (req, res) => {
 
     // Create new comment
     const newComment = {
-      userId: req.user.userId,
+      userId: req.user._id,
       text: text.trim(),
       createdAt: new Date()
     };
-
-    // Add comment to post
     post.comments.push(newComment);
     await post.save();
-
-    // Get user info for the response
-    const user = await User.findById(req.user.userId);
     
-    // Format response
+    // you already have req.user
     const commentResponse = {
       ...newComment,
       _id: post.comments[post.comments.length - 1]._id,
-      author: user ? `${user.firstName} ${user.lastName}` : 'Unknown User'
+      author: `${req.user.firstName} ${req.user.lastName}`
     };
-
     res.status(201).json(commentResponse);
   } catch (error) {
     console.error('Error adding comment:', error);
