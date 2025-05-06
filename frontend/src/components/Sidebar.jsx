@@ -64,13 +64,7 @@ export default function Sidebar() {
           <AiOutlineBarChart size={20} />
           <span>Progress</span>
         </Link>
-        <Link
-          to="/journal"
-          className="flex items-center gap-2 px-4 py-2 rounded hover:bg-purple-500 transition-colors"
-        >
-          <AiOutlineBarChart size={20} />
-          <span>Journal</span>
-        </Link>
+        
 
         <Link
           to="/community"
