@@ -14,7 +14,7 @@ export default function Home() {
 
   // Fetching quote from the ZenQuotes API
   useEffect(() => {
-    fetch('http://localhost:5000/api/quote') // Updated to use the backend route
+    fetch('https://mindfulmotion.vercel.app/api/quote') // Updated to use the backend route
       .then((res) => {
            if (!res.ok) {
                console.error(`Error fetching quote: HTTP status ${res.status}`);

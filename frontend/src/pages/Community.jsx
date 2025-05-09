@@ -31,7 +31,7 @@ export default function Community() {
           return;
         }
 
-        const res = await fetch('http://localhost:5000/api/community', {
+        const res = await fetch('https://mindfulmotion.vercel.app/api/community', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -89,7 +89,7 @@ export default function Community() {
     try {
       const token = await auth.currentUser?.getIdToken();
       if (!token) throw new Error('No token — please log in.');
-      const res = await fetch('http://localhost:5000/api/community', {
+      const res = await fetch('https://mindfulmotion.vercel.app/api/community', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -162,7 +162,7 @@ export default function Community() {
         return;
       }
      
-      const response = await fetch('http://localhost:5000/api/community', {
+      const response = await fetch('https://mindfulmotion.vercel.app/api/community', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -40,7 +40,7 @@ export default function Meditation() {
         }
         const token = await user.getIdToken();
 
-        const res = await fetch('http://localhost:5000/api/sessions', {
+        const res = await fetch('https://mindfulmotion.vercel.app/api/sessions', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -167,7 +167,7 @@ export default function Meditation() {
                   onRatingChange={(sessionId, newRating) => { 
                     
                     const token = auth.currentUser?.getIdToken();
-                    fetch(`http://localhost:5000/api/sessions/${sessionId}/ratings`, {
+                    fetch(`https://mindfulmotion.vercel.app/api/sessions/${sessionId}/ratings`, {
                       method: 'POST',
                       headers: {
                         'Content-Type': 'application/json',

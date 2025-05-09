@@ -99,7 +99,7 @@ const AssessmentForm = () => {
 
       console.log('Token being sent:', token); // Debug log to verify token
 
-      const response = await fetch('http://localhost:5000/api/assessment/analyze', {
+      const response = await fetch('https://mindfulmotion.vercel.app/api/assessment/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

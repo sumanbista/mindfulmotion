@@ -25,7 +25,7 @@ export default function AIChatPage() {
           return;
         }
 
-        const res = await fetch('http://localhost:5000/api/aichat/sessions', {
+        const res = await fetch('https://mindfulmotion.vercel.app/api/aichat/sessions', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -56,7 +56,7 @@ export default function AIChatPage() {
           return;
         }
 
-        const res = await fetch(`http://localhost:5000/api/aichat/history/${currentSession._id}`, {
+        const res = await fetch(`https://mindfulmotion.vercel.app/api/aichat/history/${currentSession._id}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -79,7 +79,7 @@ export default function AIChatPage() {
         return;
       }
 
-      const res = await fetch('http://localhost:5000/api/aichat/sessions', {
+      const res = await fetch('https://mindfulmotion.vercel.app/api/aichat/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ export default function AIChatPage() {
         return;
       }
 
-      const res = await fetch('http://localhost:5000/api/aichat/send', {
+      const res = await fetch('https://mindfulmotion.vercel.app/api/aichat/send', {
         method: 'POST',
         headers: {
           'Content-Type':  'application/json',
