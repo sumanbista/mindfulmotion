@@ -10,7 +10,8 @@ import Settings from './pages/Setting';
 import Community from './pages/Community';
 import { ToastProvider } from './contexts/ToastContext';
 import AssessmentPage from './pages/AssessmentPage';
-import AIChat from './pages/AIChatPage'
+import AIChat from './pages/AIChatPage';
+import ForgotPassword from './pages/ForgotPassword'
 
 function App() {
   return (
@@ -22,13 +23,15 @@ function App() {
             <Route path="/meditation" element={<Meditation />} />
             <Route path="/setting" element={<Settings />} />
             <Route path="/community" element={<Community />} />
-            <Route path="/progress" element={<AssessmentPage />} />
+            <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/chat"       element={<AIChat/>}/>
           </Route>
 
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
           </Route>
         </Routes>
       </Router>

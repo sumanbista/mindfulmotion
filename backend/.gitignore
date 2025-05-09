@@ -1,0 +1,8 @@
+# Ignore service account key
+serviceAccountKey.json
+
+# Ignore environment variables
+.env
+
+# Ignore Firebase service account key
+firebaseServiceAccountKey.json

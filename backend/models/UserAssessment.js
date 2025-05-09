@@ -2,17 +2,10 @@ const mongoose = require('mongoose');
 
 const userAssessmentSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String, // Updated to match the `uid` field in the User schema
     required: true,
-    ref: 'User',
+    ref: 'User', // Reference the User model
   },
-  // personality: {
-  //   openness: { type: Number, required: true },
-  //   conscientiousness: { type: Number, required: true },
-  //   extraversion: { type: Number, required: true },
-  //   agreeableness: { type: Number, required: true },
-  //   neuroticism: { type: Number, required: true },
-  // },
   mentalHealth: {
     depression: { type: Number, required: true },
     anxiety: { type: Number, required: true },

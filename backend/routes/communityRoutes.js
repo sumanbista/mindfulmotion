@@ -6,28 +6,33 @@ const router = express.Router();
 
 // Get all posts
 console.log('→ mounting communityRoutes') 
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
+    console.log('Fetching posts from the database...');
+    console.log('Authenticated User:', req.user); // Log the authenticated user
+
     const posts = await Post.find()
       .sort({ createdAt: -1 })
-      .populate('userId', 'firstName lastName')
-      .populate('comments.userId', 'firstName lastName')
+      .populate('userId', 'name') // Ensure we are populating the correct field
+      .populate('comments.userId', 'name') // Ensure we are populating the correct field
       .lean();
+
+    console.log('Fetched Posts:', posts); // Log the fetched posts
 
     // format author, loves count, comments…
     const formatted = posts.map(post => ({
       ...post,
-      author: `${post.userId.firstName} ${post.userId.lastName}`,
+      author: post.userId?.name || 'Anonymous', // Safely access `name` and fallback to 'Anonymous'
       loves: post.loves.length,
       comments: post.comments.map(c => ({
         ...c,
-        author: `${c.userId.firstName} ${c.userId.lastName}`
+        author: c.userId?.name || 'Anonymous', // Safely access `name` and fallback to 'Anonymous'
       }))
     }));
 
     res.json(formatted);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching posts:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -35,6 +40,8 @@ router.get('/', async (req, res) => {
 // Create a new post
 router.post('/', protect, async (req, res) => {
   try {
+    console.log('Request Headers:', req.headers);
+    console.log('Decoded User in communityRoutes:', req.user);
     const { content } = req.body;
     if (!content.trim()) {
       return res.status(400).json({ message: 'Post content is required' });
@@ -65,6 +72,8 @@ router.post('/', protect, async (req, res) => {
 // Add comment to a post
 router.post('/:postId/comments', protect, async (req, res) => {
   try {
+    console.log('Request Headers:', req.headers);
+    console.log('Decoded User in communityRoutes:', req.user);
     const { text } = req.body;
     const { postId } = req.params;
     
@@ -103,6 +112,8 @@ router.post('/:postId/comments', protect, async (req, res) => {
 // Toggle love reaction
 router.put('/:postId/love', protect, async (req, res) => {
   try {
+    console.log('Request Headers:', req.headers);
+    console.log('Decoded User in communityRoutes:', req.user);
     const { postId } = req.params;
     const userId = req.user.userId;
 

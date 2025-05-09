@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import YouTube from 'react-youtube';
 
+// --- Sub-components with Themed Styling ---
+
 // 1. Thumbnail image component
 function ThumbnailImage({ backgroundImage, title, imageError, handleImageError }) {
   return (
-    <>
+    <div className="relative h-full w-full"> {/* Ensure div fills container */}
       <img
         src={backgroundImage}
         alt={title}
@@ -12,37 +14,40 @@ function ThumbnailImage({ backgroundImage, title, imageError, handleImageError }
         onError={handleImageError}
       />
       
-      {/* Fallback for errors */}
-      {imageError && (
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+      {/* Fallback for errors or if image is missing */}
+      {(imageError || !backgroundImage) && (
+        <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-white opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        </div>
       )}
       
       {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 bg-opacity-30"></div>
-    </>
+      <div className="absolute inset-0 bg-black opacity-20"></div> {/* Slightly darker overlay */}
+    </div>
   );
 }
 
 // 2. Video player component
 function VideoPlayer({ actualVideoId, opts, onReady, onError, handleStop }) {
   return (
-    <div className="relative h-40 bg-black">
-      <div className='h-full w-full overflow-hidden'>
-        <YouTube
-          videoId={actualVideoId}
-          opts={{
-            ...opts,
-            height: '100%',
-            width: '100%',
-          }}
-          onReady={onReady}
-          onError={onError}
-          className="w-full h-full object-contain"
-        />
-      </div>
+    <div className="relative h-40 w-full bg-black"> {/* Ensure div takes full width */}
+      <YouTube
+        videoId={actualVideoId}
+        opts={{
+          ...opts,
+          height: '100%',
+          width: '100%',
+        }}
+        onReady={onReady}
+        onError={onError}
+        className="w-full h-full object-contain" // Added object-contain
+      />
       <button
         onClick={handleStop}
-        className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors z-10"
+        className="absolute top-2 right-2 bg-gray-800 bg-opacity-50 text-white p-1.5 rounded-full hover:bg-opacity-75 transition-opacity z-10 focus:outline-none focus:ring-2 focus:ring-white" // Themed stop button look
+        aria-label="Stop video"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
@@ -58,7 +63,8 @@ function PlayStopButton({ playing, handlePlay, handleStop, actualVideoId }) {
     return (
       <button
         onClick={handleStop}
-        className="flex items-center text-xs font-medium text-red-500 hover:text-red-600 transition-colors"
+        className="flex items-center text-xs font-medium text-red-600 hover:text-red-800 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500" // Themed stop button text
+        aria-label="Stop"
       >
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
@@ -72,7 +78,8 @@ function PlayStopButton({ playing, handlePlay, handleStop, actualVideoId }) {
     <button
       onClick={handlePlay}
       disabled={!actualVideoId}
-      className={`flex items-center text-xs font-medium ${actualVideoId ? 'text-green-500 hover:text-green-600' : 'text-gray-400 cursor-not-allowed'} transition-colors`}
+      className={`flex items-center text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 ${actualVideoId ? 'text-teal-600 hover:text-teal-800' : 'text-gray-500 cursor-not-allowed'}`} // Themed play button text
+      aria-label="Play"
     >
       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
@@ -82,223 +89,227 @@ function PlayStopButton({ playing, handlePlay, handleStop, actualVideoId }) {
   );
 }
 
-// 4. Star rating component
-function StarRating({ rating, onClick }) {
-  return (
-    <div className="flex">
-      {Array(5).fill(0).map((_, i) => (
-        <svg
-          key={i}
-          className={`w-4 h-4 cursor-pointer ${i < rating ? 'text-yellow-500' : 'text-gray-300'}`}
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          onClick={onClick}
-        >
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-      ))}
-    </div>
-  );
-}
+// Commented out all rating-related components and logic
+// 4. Star rating display component
+// function StarRatingDisplay({ rating, onClick }) { // Renamed to avoid conflict with modal stars
+//   const roundedRating = Math.round(rating); // Round for display
+//   return (
+//     <div className="flex items-center">
+//       {[...Array(5)].map((_, i) => (
+//         <svg
+//           key={i}
+//           className={`w-4 h-4 cursor-pointer ${i < roundedRating ? 'text-yellow-500' : 'text-gray-300'}`}
+//           fill="currentColor"
+//           viewBox="0 0 20 20"
+//           xmlns="http://www.w3.org/2000/svg"
+//         >
+//           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.18c.969 0 1.371 1.24.588 1.81l-3.39 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.39-2.46a1 1 0 00-1.175 0l-3.39 2.46c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.98 9.394c-.783-.57-.38-1.81.588-1.81h4.18a1 1 0 00.95-.69l1.286-3.967z" />
+//         </svg>
+//       ))}
+//       {rating > 0 && <span className="text-xs text-gray-600 ml-1">({rating.toFixed(1)})</span>}
+//     </div>
+//   );
+// }
 
 // 5. Rating modal component
-function RatingModal({ title, userRating, handleRating, onClose }) {
-  return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white p-4 rounded-lg max-w-sm w-full"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="text-lg font-bold">Rate this session</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+// function RatingModal({ title, userRating, handleRating, onClose }) {
+//   const [tempRating, setTempRating] = useState(userRating || 0); // State for selecting in modal
+//   return (
+//     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+//       <div className="bg-white p-6 rounded-lg shadow-lg">
+//         <h3 className="text-lg font-bold mb-4">Rate {title}</h3>
+//         <div className="flex items-center justify-center mb-4">
+//           {[...Array(5)].map((_, i) => (
+//             <svg
+//               key={i}
+//               className={`w-10 h-10 cursor-pointer transition-colors ${i < tempRating ? 'text-yellow-500' : 'text-gray-300'}`}
+//               fill="currentColor"
+//               viewBox="0 0 20 20"
+//               xmlns="http://www.w3.org/2000/svg"
+//               onClick={() => setTempRating(i + 1)} // Select rating in modal
+//             >
+//               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.18c.969 0 1.371 1.24.588 1.81l-3.39 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.39-2.46a1 1 0 00-1.175 0l-3.39 2.46c-.784.57-1.838-.197-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.98 9.394c-.783-.57-.38-1.81.588-1.81h4.18a1 1 0 00.95-.69l1.286-3.967z" />
+//             </svg>
+//           ))}
+//         </div>
+//         <div className="flex justify-end">
+//           {userRating !== tempRating && tempRating > 0 && ( // Show Save if rating changed and is > 0
+//             <button
+//               className="bg-blue-500 text-white px-4 py-2 rounded-lg mr-2"
+//               onClick={() => handleRating(tempRating)}
+//             >
+//               Save
+//             </button>
+//           )}
+//           <button
+//             className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg"
+//             onClick={onClose}
+//           >
+//             Close
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
-        <p className="mb-3 text-gray-600 text-sm">How would you rate "{title}"?</p>
 
-        <div className="flex justify-center mb-4">
-          {Array(5).fill(0).map((_, i) => (
-            <svg
-              key={i}
-              className={`w-8 h-8 cursor-pointer ${i < (userRating || 0) ? 'text-yellow-500' : 'text-gray-300'}`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              onClick={() => handleRating(i + 1)}
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-3 py-1.5 text-gray-600 hover:text-gray-800 mr-2 text-sm"
-          >
-            Cancel
-          </button>
-          {userRating && (
-            <button
-              onClick={() => handleRating(0)}
-              className="px-3 py-1.5 bg-red-100 text-red-600 rounded hover:bg-red-200 text-sm"
-            >
-              Remove Rating
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main SessionCard component
+// --- Main SessionCard component ---
 export default function SessionCard({
   id,
   title,
   focus,
-  rating,
-  userRating,
+  rating, // Average rating
+  userRating, // Current user's rating for this session
   videoId,
   backgroundImage,
   currentlyPlaying,
   setCurrentlyPlaying,
-  onRatingChange
+  onRatingChange // This function should accept (sessionId, newRating)
 }) {
   const [playing, setPlaying] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [imageError, setImageError] = useState(false);
   const playerRef = useRef(null);
-  const cardId = `${id}-${title}`;
+  const cardId = id; // Use session ID as card ID for uniqueness
 
-  // Extract YouTube ID from HTML iframe if needed
+  // Extract YouTube ID from various inputs (URL, embed code, just ID)
   const extractVideoId = (input) => {
     if (!input) return null;
-    if (input.length < 20 && !input.includes('<')) {
-      return input;
-    }
-    const match = input.match(/\/embed\/([^?]+)/);
-    return match && match[1] ? match[1] : null;
+    const urlMatch = input.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|(?:embed|v)\/))([^&]+)/);
+    if (urlMatch && urlMatch[1]) return urlMatch[1];
+
+    // Check for embed code
+    const embedMatch = input.match(/\/embed\/([^?]+)/);
+    if (embedMatch && embedMatch[1]) return embedMatch[1];
+
+    // Assume it's just the ID if short and no special characters
+    if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+
+    return null; // Return null if no valid ID found
   };
+
 
   const actualVideoId = extractVideoId(videoId);
 
   // YouTube player options
   const opts = {
-    height: '200',
-    width: '100%',
     playerVars: {
-      autoplay: 1,
-      controls: 1,
-      modestbranding: 1,
-      rel: 0,
-      fs: 1,
+      autoplay: 1, // Autoplay when played
+      controls: 1, // Show controls
+      modestbranding: 1, // Hide YouTube logo button
+      rel: 0, // Disable related videos at the end
+      fs: 1, // Enable fullscreen button
+      showinfo: 0, // Hide video title and uploader info
+     iv_load_policy: 3, // Hide annotations
     },
   };
 
   // Handle image loading error
   const handleImageError = () => {
-    console.error(`Failed to load image: ${backgroundImage}`);
+    console.warn(`Failed to load image: ${backgroundImage}`); // Use warn for non-critical
     setImageError(true);
   };
 
-  // Listen for changes in currently playing video
+  // Listen for changes in currently playing video across all cards
   useEffect(() => {
-    if (currentlyPlaying && currentlyPlaying !== cardId && playing) {
-      setPlaying(false);
-      if (playerRef.current) {
-        try {
-          playerRef.current.internalPlayer.stopVideo();
-        } catch (error) {
-          console.error("Error stopping video:", error);
-        }
-      }
+    if (currentlyPlaying !== null && currentlyPlaying !== cardId && playing) {
+      // If another card started playing, stop this one
+      handleStop(); // Use the internal stop handler
     }
-  }, [currentlyPlaying, cardId, playing]);
+  }, [currentlyPlaying, cardId, playing]); // Dependencies
 
+  // Handle play action
   const handlePlay = () => {
     if (!actualVideoId) {
-      console.warn("No video ID available for this session");
+      console.warn("No valid video ID available for this session:", videoId);
       return;
     }
     setPlaying(true);
-    setCurrentlyPlaying(cardId);
+    setCurrentlyPlaying(cardId); // Notify parent this card is playing
+    // The useEffect hook will handle stopping others
   };
 
+  // Handle stop action
   const handleStop = () => {
+     if (!playing) return; // Only stop if currently playing
+
     setPlaying(false);
     if (currentlyPlaying === cardId) {
-      setCurrentlyPlaying(null);
+      setCurrentlyPlaying(null); // Notify parent this card stopped
     }
-    if (playerRef.current) {
+    // Stop the actual YouTube player
+    if (playerRef.current && typeof playerRef.current.internalPlayer.stopVideo === 'function') {
       try {
         playerRef.current.internalPlayer.stopVideo();
       } catch (error) {
         console.error("Error stopping video:", error);
       }
     }
+    // Show rating modal after stopping
     setShowRatingModal(true);
   };
 
-  const handleRating = (newRating) => {
-    onRatingChange(id, newRating);
-    setShowRatingModal(false);
+  // Handle rating submission from modal
+  const submitRating = (newRating) => {
+    // Call the parent function to handle the API call
+    onRatingChange(id, newRating); // Pass session ID and new rating up
+    setShowRatingModal(false); // Close modal
   };
 
+  // YouTube player ready handler
   const onReady = (event) => {
-    playerRef.current = event.target;
-    try {
-      event.target.playVideo();
-    } catch (error) {
-      console.error("Error playing video:", error);
-    }
+    playerRef.current = event.target; // Store player instance
+    // Player is ready, it should autoplay based on opts if handlePlay was called
   };
 
+  // YouTube player error handler
   const onError = (event) => {
     console.error("YouTube Player Error:", event.data);
-    setPlaying(false);
+    // Handle specific error codes if necessary (e.g., invalid video ID)
+    setPlaying(false); // Stop playing state on error
+    if (currentlyPlaying === cardId) {
+       setCurrentlyPlaying(null);
+    }
+    // Optional: Show an error message on the card
+    // setError("Error loading video.");
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col border border-gray-200"> {/* Themed container */}
       {/* Media Section - Either Video Player or Thumbnail Image */}
-      {playing && actualVideoId ? (
-        <VideoPlayer 
-          actualVideoId={actualVideoId}
-          opts={opts}
-          onReady={onReady}
-          onError={onError}
-          handleStop={handleStop}
-        />
-      ) : (
-        <div className="relative h-40">
-          <ThumbnailImage
-            backgroundImage={backgroundImage}
-            title={title}
-            imageError={imageError}
-            handleImageError={handleImageError}
-          />
-        </div>
-      )}
+      <div className="w-full h-40 relative"> {/* Wrapper div for consistent height */}
+          {playing && actualVideoId ? (
+            <VideoPlayer
+              actualVideoId={actualVideoId}
+              opts={opts}
+              onReady={onReady}
+              onError={onError}
+              handleStop={handleStop}
+            />
+          ) : (
+            <div className="relative h-full"> {/* Ensure thumbnail div fills wrapper */}
+              <ThumbnailImage
+                backgroundImage={backgroundImage}
+                title={title}
+                imageError={imageError}
+                handleImageError={handleImageError}
+              />
+            </div>
+          )}
+      </div>
+
 
       {/* Info Section */}
-      <div className="p-3 flex-grow flex flex-col">
-        <div className="flex justify-between items-center mb-2">
+      <div className="p-4 flex-grow flex flex-col border-t border-gray-200"> {/* Themed padding, flex-grow, top border */}
+        <div className="flex justify-between items-start mb-2"> {/* items-start for multi-line titles */}
+          {/* Only show title here if not playing, otherwise title is in player area */}
           {!playing && (
-            <h3 className="font-bold text-sm md:block">{title}</h3>
+            <h3 className="font-bold text-base text-gray-900 flex-grow mr-2">{title}</h3> // Themed title, flex-grow to push button right
           )}
 
           {/* Play/Stop Button */}
-          <div className="flex items-center">
+          <div className={`flex-shrink-0 ${!playing ? 'ml-auto' : ''}`}> {/* Push button right if title is present */}
             <PlayStopButton
               playing={playing}
               handlePlay={handlePlay}
@@ -308,57 +319,55 @@ export default function SessionCard({
           </div>
         </div>
 
-        <div className="flex items-center text-xs text-gray-600 mb-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          {focus}
+        {/* Session Focus */}
+        <div className="flex items-center text-xs text-gray-600 mb-1.5"> {/* Themed text */}
+           <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg> {/* Themed icon */}
+          {focus.charAt(0).toUpperCase() + focus.slice(1)} {/* Capitalize focus */}
         </div>
 
         {/* Star Rating Display */}
-        <div className="flex justify-between items-center mb-1">
-          <StarRating 
-            rating={rating} 
-            onClick={() => setShowRatingModal(true)} 
+        {/* <div className="flex justify-between items-center mb-3"> 
+          <StarRatingDisplay // Use the display component
+            rating={rating || 0} // Ensure rating is a number, default to 0
+            onClick={() => setShowRatingModal(true)} // Open modal on click
           />
-          
-          <span className="text-xs text-gray-500">
-            {rating > 0 ? `${rating}/5` : 'No ratings'}
-          </span>
-        </div>
 
-        {/* User Rating Section */}
-        {userRating ? (
-          <div className="text-xs text-blue-500 flex justify-end items-center mt-auto">
-            <span>Your rating: {userRating}/5</span>
+          <span className="text-sm text-gray-600"> 
+             {rating > 0 ? `${(rating || 0).toFixed(1)}/5` : 'No ratings'} 
+          </span>
+        </div> */}
+
+        {/* User Rating Section or Rate Button */}
+        {/* {userRating !== undefined && userRating !== null ? ( 
+          <div className="text-sm text-blue-600 flex justify-end items-center mt-auto"> 
+            <span className="mr-1">Your rating: {userRating}/5</span> 
             <button
-              onClick={() => setShowRatingModal(true)}
-              className="ml-1.5 text-blue-600 hover:text-blue-800"
+              onClick={() => setShowRatingModal(true)} 
+              className="text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 rounded" 
+              aria-label="Edit your rating"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
             </button>
           </div>
         ) : (
           <button
-            onClick={() => setShowRatingModal(true)}
-            className="text-xs text-blue-500 hover:underline flex justify-end w-full mt-auto"
+            onClick={() => setShowRatingModal(true)} 
+            className="text-sm text-teal-600 hover:underline flex justify-end w-full mt-auto transition-colors focus:outline-none focus:ring-2 focus:ring-teal-400 rounded" 
           >
             Rate this session
           </button>
-        )}
+        )} */}
       </div>
 
       {/* Rating Modal */}
-      {showRatingModal && (
+      {/* {showRatingModal && (
         <RatingModal
           title={title}
-          userRating={userRating}
-          handleRating={handleRating}
+          userRating={userRating} 
+          handleRating={submitRating} 
           onClose={() => setShowRatingModal(false)}
         />
-      )}
+      )} */}
     </div>
   );
 }

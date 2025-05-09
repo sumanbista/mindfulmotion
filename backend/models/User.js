@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+  _id: {
+    type: String, // Changed from ObjectId to String to match Firebase UID
+    required: true,
+  },
   firstName: {
     type: String,
     required: true,
@@ -19,7 +23,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  
+  uid: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 }, { timestamps: true });
 
 // Hash password before saving the user

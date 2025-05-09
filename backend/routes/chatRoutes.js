@@ -47,11 +47,12 @@ router.post('/send', async (req, res) => {
   let { sessionId, text } = req.body;
   text = (text || '').trim();
   if (!text) return res.status(400).json({ message: 'Text is required' });
-
+ // Extract userId from the authenticated user
+ const userId = req.user._id;
   // 4a) If no sessionId, create one
   if (!sessionId) {
     const newSession = await ChatSession.create({
-      userId: req.user._id,
+      userId,
       title: text.slice(0,50)  // first words as title
     });
     sessionId = newSession._id;

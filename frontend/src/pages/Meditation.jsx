@@ -1,130 +1,254 @@
-import React, { useState, useEffect } from 'react'
-import SessionCard from '../components/SessionCard'
+import React, { useState, useEffect } from 'react';
+import SessionCard from '../components/SessionCard';
+import { useNavigate } from 'react-router-dom';
+import { auth } from '../../firebase/config'; // Assuming firebase auth is correctly imported
 
 export default function Meditation() {
-  const [sessions, setSessions]       = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [error, setError]             = useState(null)
-  const [currentlyPlaying, setCurrentlyPlaying] = useState(null)
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
 
   // pagination + filter state
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [currentPage, setCurrentPage]           = useState(1)
-  const sessionsPerPage                         = 6
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const sessionsPerPage = 6; // Define how many sessions per page
 
-  const categories = ['all','relax','focus','sleep','energy','mindfulness']
+  const categories = ['all', 'relax', 'focus', 'sleep', 'energy', 'mindfulness'];
+  const navigate = useNavigate();
 
-  // fetch once
+  // Map focus categories to corresponding images
+  const categoryImages = {
+    relax: '/images/meditation/relax1.png',
+    focus: '/images/meditation/focus1.png',
+    sleep: '/images/meditation/sleep1.png',
+    energy: '/images/meditation/energy1.png',
+    mindfulness: '/images/meditation/mindfulness1.png',
+  };
+
+  // fetch sessions once on component mount
   useEffect(() => {
-    async function load() {
+    const loadSessions = async () => {
+      setLoading(true);
+      setError(null); // Clear previous errors
       try {
+        // Ensure auth state is ready before getting token
+        const user = auth.currentUser;
+        if (!user) {
+          setError('You must be logged in to access meditation sessions.');
+          navigate('/login');
+          return;
+        }
+        const token = await user.getIdToken();
+
         const res = await fetch('http://localhost:5000/api/sessions', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        })
-        if (!res.ok) throw new Error(res.statusText)
-        setSessions(await res.json())
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (res.status === 401) {
+          setError('Authentication failed. Please log in again.');
+          // Clear token and redirect to login
+          localStorage.removeItem('token'); // Clear token if stored there too
+          navigate('/login');
+          return; // Stop execution
+        }
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || `HTTP status ${res.status}`);
+        }
+        setSessions(await res.json());
       } catch (e) {
-        setError('Could not load sessions')
+        console.error("Error loading sessions:", e);
+        setError(`Failed to load sessions: ${e.message || 'Network error'}. Please try again or log in.`);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    load()
-  }, [])
+    };
 
-  // when category changes, reset page
-  useEffect(() => { setCurrentPage(1) }, [selectedCategory])
+     // Add an observer to wait for auth state to be ready
+     const unsubscribe = auth.onAuthStateChanged(user => {
+         if (user) {
+             loadSessions();
+         } else {
+             setLoading(false);
+             setError('You must be logged in to access meditation sessions.');
+             navigate('/login');
+         }
+     });
 
-  if (loading) return    <p>Loading…</p>
-  if (error)   return    <p className="text-red-600">{error}</p>
+     // Cleanup observer on component unmount
+     return () => unsubscribe();
 
-  // filter & paginate
+  }, [navigate]); // navigate is a dependency
+
+  // Reset to first page when category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
+  // Display loading state
+  if (loading) return (
+    <div className="min-h-screen flex justify-center items-center bg-emerald-50"> {/* Themed background */}
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-teal-600"></div> {/* Themed spinner */}
+        <p className="mt-4 text-gray-700 text-lg">Loading meditation sessions...</p> {/* Themed text */}
+      </div>
+    </div>
+  );
+
+  // Display error state
+  if (error) return (
+    <div className="min-h-screen flex justify-center items-center bg-emerald-50"> {/* Themed background */}
+      <div className="text-center p-6 bg-white rounded-lg shadow-md border border-red-300"> {/* Themed error container */}
+        <p className="text-red-700 font-semibold mb-4">{error}</p> {/* Themed error text */}
+        <button
+          onClick={() => navigate('/login')}
+          className="px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 transition duration-150 ease-in-out" 
+        >
+          Go to Login
+        </button>
+      </div>
+    </div>
+  );
+
+  // filter & paginate sessions
   const filtered = selectedCategory === 'all'
     ? sessions
-    : sessions.filter(s => s.focus.toLowerCase() === selectedCategory)
+    : sessions.filter(s => s.focus.toLowerCase() === selectedCategory);
 
-  const startIdx = (currentPage-1)*sessionsPerPage
-  const page    = filtered.slice(startIdx, startIdx + sessionsPerPage)
-  const total   = Math.ceil(filtered.length / sessionsPerPage)
+  const startIdx = (currentPage - 1) * sessionsPerPage;
+  const page = filtered.slice(startIdx, startIdx + sessionsPerPage);
+  const total = Math.ceil(filtered.length / sessionsPerPage);
 
   return (
-    <div>
-      <h2>Meditation Sessions</h2>
+    <div className="min-h-screen bg-emerald-50 py-8"> {/* Themed background and vertical padding */}
+      <div className="container mx-auto px-4"> {/* Centered container with horizontal padding */}
+        <h1 className="text-3xl font-bold text-center mb-8 text-teal-800">Meditation Sessions</h1> {/* Themed main title */}
 
-      {/* Category pills */}
-      <div className="flex gap-2 mb-4">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={()=>setSelectedCategory(cat)}
-            className={
-              `px-3 py-1 rounded-full ${
-                cat===selectedCategory
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`
-            }>
-            {cat.charAt(0).toUpperCase()+cat.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Session grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {page.map(session => (
-          <SessionCard
-            key={session._id}
-            {...session}
-            currentlyPlaying={currentlyPlaying}
-            setCurrentlyPlaying={setCurrentlyPlaying}
-            onRatingChange={newRating => {
-              // POST rating to backend
-              const token = localStorage.getItem('token')
-              fetch(`http://localhost:5000/api/sessions/${session._id}/ratings`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type':'application/json',
-                  'Authorization':`Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({rating: newRating })
-              })
-              .then(r=>r.json())
-              .then(({averageRating})=>{
-                // update UI optimistically
-                session.rating = averageRating
-                setSessions([...sessions])
-              })
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Pagination controls */}
-      {total>1 && (
-        <div className="flex justify-center mt-6 gap-2">
-          <button
-            onClick={()=>currentPage>1&&setCurrentPage(currentPage-1)}
-            disabled={currentPage===1}
-            className="px-3 py-1 rounded"
-          >‹</button>
-
-          {Array.from({length:total},(_,i)=>i+1).map(n=>(
+        {/* Category pills */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8"> {/* Themed container, added wrap and center */}
+          {categories.map(cat => (
             <button
-              key={n}
-              onClick={()=>setCurrentPage(n)}
-              className={`px-3 py-1 rounded ${
-                n===currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200'
-              }`}
-            >{n}</button>
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={
+                `px-4 py-2 rounded-full font-semibold text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 ${
+                  cat === selectedCategory
+                    ? 'bg-teal-600 text-white shadow-md' // Themed active state
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300' // Themed default/hover state
+                }`
+              }
+            >
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
           ))}
-
-          <button
-            onClick={()=>currentPage<total&&setCurrentPage(currentPage+1)}
-            disabled={currentPage===total}
-            className="px-3 py-1 rounded"
-          >›</button>
         </div>
-      )}
+
+        {/* Session grid */}
+        {page.length === 0 ? (
+             <div className="text-center text-gray-600 italic text-lg py-8">
+                 No sessions found for the selected category.
+             </div>
+        ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"> {/* Adjusted grid for smaller screens */}
+              {page.map(session => (
+                <SessionCard
+                  key={session._id}
+                  id={session._id} // Pass id explicitly
+                  title={session.title}
+                  focus={session.focus}
+                  rating={session.rating}
+                  userRating={session.userRating} // Pass userRating
+                  videoId={session.videoId}
+                  backgroundImage={categoryImages[session.focus.toLowerCase()] || '/images/meditation/default.png'}
+                  currentlyPlaying={currentlyPlaying}
+                  setCurrentlyPlaying={setCurrentlyPlaying}
+                  onRatingChange={(sessionId, newRating) => { // Match handler signature
+                    // POST rating to backend
+                    // Assuming token logic is handled in SessionCard or here before calling API
+                     const token = localStorage.getItem('token') // Or get from auth.currentUser
+                    fetch(`http://localhost:5000/api/sessions/${sessionId}/ratings`, {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Use token
+                      },
+                      body: JSON.stringify({ rating: newRating })
+                    })
+                      .then(async (r) => {
+                         if (!r.ok) {
+                             const errorData = await r.json();
+                             throw new Error(errorData.message || `HTTP status ${r.status}`);
+                         }
+                         return r.json();
+                       })
+                      .then(({ averageRating, userRating: newUserRating }) => { // Receive new user rating too
+                        // update UI optimistically by finding and modifying the session
+                        setSessions(prevSessions =>
+                            prevSessions.map(s =>
+                                s._id === sessionId
+                                    ? { ...s, rating: averageRating, userRating: newUserRating }
+                                    : s
+                            )
+                        );
+                       // Optional: Show a small success message
+                      })
+                      .catch(e => {
+                         console.error("Error submitting rating:", e);
+                         alert(`Failed to submit rating: ${e.message || 'Network error'}`); // Inform user
+                         // Optional: Revert optimistic update if failed
+                      });
+                  }}
+                />
+              ))}
+            </div>
+        )}
+
+
+        {/* Pagination controls */}
+        {total > 1 && (
+          <div className="flex justify-center items-center mt-8 gap-2"> {/* Themed container */}
+             <span className="text-gray-700 text-sm">Page {currentPage} of {total}</span> {/* Page indicator */}
+             <button
+               onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+               disabled={currentPage === 1}
+               className="px-4 py-2 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400" // Themed button
+               aria-label="Previous page"
+             >
+                ‹
+             </button>
+
+            {/* Simple page numbers (can enhance later) */}
+            {/* Display only a limited range of page numbers around current page */}
+            {Array.from({length: total}, (_, i) => i + 1)
+                // Optional: filter pages to show for cleaner look with many pages
+                // .filter(pageNum => pageNum === 1 || pageNum === total || (pageNum >= currentPage - 2 && pageNum <= currentPage + 2))
+                .map(n => (
+               <button
+                 key={n}
+                 onClick={() => setCurrentPage(n)}
+                 className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 ${
+                   n === currentPage ? 'bg-teal-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' // Themed buttons
+                 }`}
+                 aria-current={n === currentPage ? 'page' : undefined} // Accessibility
+               >
+                 {n}
+               </button>
+             ))}
+
+            <button
+              onClick={() => currentPage < total && setCurrentPage(currentPage + 1)}
+              disabled={currentPage === total}
+              className="px-4 py-2 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400" // Themed button
+              aria-label="Next page"
+            >
+              ›
+            </button>
+          </div>
+        )}
+      </div>
     </div>
-  )
+  );
 }

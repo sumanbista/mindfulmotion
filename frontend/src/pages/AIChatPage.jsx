@@ -4,6 +4,7 @@ import { useNavigate }           from 'react-router-dom';
 import ChatSessionsList          from '../components/ChatSessionsList';
 import ChatHistoryPanel         from '../components/ChatHistoryPanel';
 import ChatInput                from '../components/ChatInput';
+import { auth } from '../../firebase/config'; // Import Firebase auth
 
 export default function AIChatPage() {
   const [sessions, setSessions]       = useState([]);
@@ -16,41 +17,82 @@ export default function AIChatPage() {
 
   // load sessions
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
-    fetch('http://localhost:5000/api/aichat/sessions', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(setSessions);
+    const loadSessions = async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        const res = await fetch('http://localhost:5000/api/aichat/sessions', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (res.status === 401) {
+          navigate('/login');
+          return;
+        }
+        setSessions(await res.json());
+      } catch (error) {
+        console.error('Error loading sessions:', error);
+        navigate('/login');
+      }
+    };
+
+    loadSessions();
   }, [navigate]);
 
   // load history when session changes
   useEffect(() => {
     if (!currentSession) return setHistory([]);
-    fetch(`http://localhost:5000/api/aichat/history/${currentSession._id}`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-    })
-      .then(r => r.json())
-      .then(setHistory);
-  }, [currentSession]);
 
-  // scroll on new message
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [history]);
+    const loadHistory = async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        const res = await fetch(`http://localhost:5000/api/aichat/history/${currentSession._id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        setHistory(await res.json());
+      } catch (error) {
+        console.error('Error loading history:', error);
+      }
+    };
+
+    loadHistory();
+  }, [currentSession, navigate]);
 
   // start a brand‑new chat
   const startNewChat = async () => {
-    const res     = await fetch('http://localhost:5000/api/aichat/sessions', {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        navigate('/login');
+        return;
       }
-    });
-    const session = await res.json();
-    setSessions([session, ...sessions]);
-    setCurrent(session);
-    setHistory([]);
+
+      const res = await fetch('http://localhost:5000/api/aichat/sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const session = await res.json();
+      setSessions([session, ...sessions]);
+      setCurrent(session);
+      setHistory([]);
+    } catch (error) {
+      console.error('Error starting new chat:', error);
+    }
   };
 
   // send a message to AI
@@ -58,32 +100,42 @@ export default function AIChatPage() {
     if (!text.trim()) return;
     setSending(true);
 
-    // POST /api/aichat/send { sessionId, text }
-    const res = await fetch('http://localhost:5000/api/aichat/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({ sessionId: currentSession?._id, text })
-    });
-    const { sessionId: newSid, reply } = await res.json();
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
-    // if backend spun up a new session for us, adopt it
-    if (!currentSession && newSid) {
-      setCurrent({ _id: newSid, createdAt: new Date().toISOString() });
-      // optionally refresh sessions list…
+      const res = await fetch('http://localhost:5000/api/aichat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type':  'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ sessionId: currentSession?._id, text })
+      });
+      const { sessionId: newSid, reply } = await res.json();
+
+      // if backend spun up a new session for us, adopt it
+      if (!currentSession && newSid) {
+        setCurrent({ _id: newSid, createdAt: new Date().toISOString() });
+        // optionally refresh sessions list…
+      }
+
+      // append to UI immediately
+      setHistory(h => [
+        ...h,
+        { role: 'user',      text,      createdAt: new Date().toISOString() },
+        { role: 'assistant', text: reply, createdAt: new Date().toISOString() }
+      ]);
+
+      setInput('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSending(false);
     }
-
-    // append to UI immediately
-    setHistory(h => [
-      ...h,
-      { role: 'user',      text,      createdAt: new Date().toISOString() },
-      { role: 'assistant', text: reply, createdAt: new Date().toISOString() }
-    ]);
-
-    setInput('');
-    setSending(false);
   };
 
   return (

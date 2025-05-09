@@ -13,10 +13,10 @@ const sessionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  rating: {
-    type: Number, // from 1 to 5
-    default: 5,
-  },
+  // rating: {
+  //   type: Number, // from 1 to 5
+  //   default: 5,
+  // },
   embedUrl: {
     type: String,
     default: '',

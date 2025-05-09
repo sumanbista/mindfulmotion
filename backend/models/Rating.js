@@ -6,8 +6,9 @@ const ratingSchema = new mongoose.Schema({
     required: true,
   },
   userId: {
-    type: String,
+    type: String, // Updated to match the `uid` field in the User schema
     required: true,
+    ref: 'User', // Reference the User model
   },
   value: {
     type: Number,

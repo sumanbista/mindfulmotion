@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,// Updated to match the `uid` field in the User schema
     ref: 'User',
     required: true
   },
@@ -19,9 +19,9 @@ const commentSchema = new mongoose.Schema({
 
 const postSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: String, // Updated to match the `uid` field in the User schema
+    required: true,
+    ref: 'User', // Reference the User model
   },
   content: {
     type: String,
@@ -30,7 +30,7 @@ const postSchema = new mongoose.Schema({
   },
   comments: [commentSchema],
   loves: [{
-    type: mongoose.Schema.Types.ObjectId,
+    type: String, // Changed from ObjectId to String to match the `uid` field in the User schema
     ref: 'User'
   }],
   createdAt: {

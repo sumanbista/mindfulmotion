@@ -3,6 +3,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const admin = require('firebase-admin');
+// const serviceAccount = require('../backend/firebaseServiceAccountKey.json');
+// console.log(serviceAccount)
+
+// admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+// });
 
 const userRoutes = require('./routes/userRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
@@ -15,7 +22,13 @@ const chatRoutes = require('./routes/chatRoutes');
 const app = express();
 
 // Middlewares
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:5173', // Update this to match your frontend's URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
@@ -29,10 +42,14 @@ mongoose.connect(process.env.MONGO_URI, {
 
 app.get('/api/quote', async (req, res) => {
   try {
-    const response = await fetch('https://zenquotes.io/api/quotes/[your_key]');
+    const response = await fetch('https://zenquotes.io/api/random');
+    if (!response.ok) {
+      return res.status(response.status).json({ message: 'Error fetching quote from ZenQuotes' });
+    }
     const data = await response.json();
     res.json(data);
   } catch (error) {
+    console.error('Error fetching quote:', error);
     res.status(500).json({ message: 'Error fetching quote', error });
   }
 });

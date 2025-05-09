@@ -1,28 +1,29 @@
 // src/components/ChatInput.jsx
 import React from 'react';
 
-export default function ChatInput({ onSend, sending, input, setInput }) {
+// Receive disabled prop
+export default function ChatInput({ onSend, sending, input, setInput, disabled }) {
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!input.trim() || sending) return; // Don't send if input is empty or sending is in progress
+    if (!input.trim() || sending || disabled) return; // Check disabled prop
     onSend(input);
-    setInput(''); // Reset input after sending
+    // setInput(''); // Input is now cleared in the parent AIChatPage after optimistic update
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-3 mt-4 bg-white p-3 rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md border border-gray-200"> {/* Themed container, increased gap/padding */}
       <input
-        className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+        className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 ease-in-out text-gray-800 placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed" // Themed input, disabled state
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask your counselor..."
-        disabled={sending}
+        placeholder="Ask your AI counselor..." // Updated placeholder
+        disabled={disabled} // Use disabled prop
+        aria-label="Type your message" // Accessibility
       />
       <button
         type="submit"
-        className={`px-6 py-3 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 transition-colors duration-200
-          ${sending ? 'opacity-60 cursor-not-allowed' : ''}`}
-        disabled={sending}
+        className={`px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed`} // Themed button, disabled state
+        disabled={disabled} // Use disabled prop
       >
         {sending ? 'Sending...' : 'Send'}
       </button>

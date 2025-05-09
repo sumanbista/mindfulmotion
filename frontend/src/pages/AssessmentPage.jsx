@@ -3,7 +3,7 @@ import AssessmentForm from '../components/AssessmentForm';
 
 export default function AssessmentPage() {
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100">
+    <div className="min-h-screen flex justify-center items-center py-12 bg-emerald-50"> {/* Themed background and vertical padding */}
       <AssessmentForm />
     </div>
   );
