@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { auth } from '../../firebase/config'; // Assuming firebase auth is correctly imported
+import { auth } from '../../firebase/config'; 
+import { useToast } from '../contexts/ToastContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,8 +13,9 @@ export default function Login() {
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
 
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast(); // Use toast context
 
-  // Email validation function (kept as is)
+  // Email validation function 
   const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -27,7 +29,8 @@ export default function Login() {
 
     // Validate email
     if (!isValidEmail(email)) {
-      setError('Please enter a valid email address.'); // Improved error message
+      setError('Please enter a valid email address.'); 
+      showError('Please enter a valid email address.'); 
       setLoading(false);
       return;
     }
@@ -39,7 +42,7 @@ export default function Login() {
       // Check if email is verified
       if (!user.emailVerified) {
         // Send verification email again
-        // Consider adding a check here to avoid sending too many emails rapidly
+      
         try {
              await sendEmailVerification(user);
              setShowVerificationMessage(true);
@@ -48,32 +51,27 @@ export default function Login() {
              setPassword('');
              // Sign out the user immediately after sending verification email
             await auth.signOut();
+            showError('Please verify your email before logging in. Verification email sent.'); 
         } catch (sendError) {
             console.error("Error sending verification email:", sendError);
              setError('Please verify your email before logging in. Failed to send verification email.');
+             showError('Failed to send verification email.'); 
         }
         setLoading(false);
         return;
       }
 
-      // --- Successful Login ---
-      // Backend API call to get/store user info or token if needed
-      // Example: await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ uid: user.uid, email: user.email }) });
-
-      // Store user info in localStorage (consider using session storage or context for more secure/temporary storage)
-       // Note: displayName might be null if not set during signup
+      
       localStorage.setItem('userInfo', JSON.stringify({
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         emailVerified: true
       }));
-      // Store JWT token if your backend provides one
-      // localStorage.setItem('token', tokenFromServer);
-
+    
 
       // Navigate to the home page or dashboard
-      // alert(`Welcome back, ${user.displayName || user.email}!`); // Themed alert? Native alert is okay for now.
+      showSuccess(`Welcome back, ${user.displayName || user.email}!`); 
       navigate('/');
 
     } catch (error) {
@@ -82,7 +80,7 @@ export default function Login() {
 
       switch (error.code) {
         case 'auth/user-not-found':
-        case 'auth/invalid-credential': // Firebase often uses this for both email/password issues
+        case 'auth/invalid-credential': 
           customErrorMessage = 'Invalid email or password. Please check your credentials.';
           break;
         case 'auth/wrong-password':
@@ -93,13 +91,12 @@ export default function Login() {
           break;
         case 'auth/user-disabled':
           customErrorMessage = 'This account has been disabled. Please contact support.';
-          break;
-        // Add more specific cases if needed
+        
         default:
-           customErrorMessage = `Login failed: ${error.message || 'Unknown error'}`; // Provide Firebase message if general
+           customErrorMessage = `Login failed: ${error.message || 'Unknown error'}`; 
       }
-      setError(customErrorMessage); // Set the user-friendly error message
-
+      setError(customErrorMessage); 
+      showError(customErrorMessage); 
     } finally {
       setLoading(false);
     }
@@ -131,24 +128,24 @@ export default function Login() {
   // --- Main Login Form View ---
   return (
     <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 py-12 px-4" // Themed background, added padding
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50 py-12 px-4" 
     >
       <div className="bg-white shadow-xl rounded-lg p-8 w-full max-w-md border border-gray-200"> {/* Themed container */}
-        {/* Logo / Title */}
-        <div className="text-center mb-8"> {/* Increased bottom margin */}
-          <h1 className="text-3xl font-bold text-teal-800 mb-2">MindfulMotion</h1> {/* Themed main title */}
-          <p className="text-gray-600 text-lg">Welcome Back</p> {/* Themed subtitle */}
+        
+        <div className="text-center mb-8"> 
+          <h1 className="text-3xl font-bold text-teal-800 mb-2">MindfulMotion</h1> 
+          <p className="text-gray-600 text-lg">Welcome Back</p> 
         </div>
 
         {/* Error Display */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-300 shadow-sm"> {/* Themed error banner */}
+          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-md border border-red-300 shadow-sm"> 
             <p className="font-medium">{error}</p>
-            {/* Conditional link for signup if needed */}
+            
             {error.includes('No account found') || error.includes('Invalid email or password') && (
               <p className="mt-2 text-sm text-red-600">
                 Don't have an account?{' '}
-                <Link to="/signup" className="text-red-700 hover:underline font-semibold"> {/* Themed link within error */}
+                <Link to="/signup" className="text-red-700 hover:underline font-semibold"> 
                   Sign up here
                 </Link>
               </p>
@@ -156,10 +153,10 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6"> {/* Added space between form groups */}
+        <form onSubmit={handleLogin} className="space-y-6"> 
           {/* Email */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-sm"> {/* Themed label */}
+            <label className="block text-gray-700 font-semibold mb-2 text-sm"> 
               Email Address
             </label>
             <input
@@ -168,13 +165,13 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 ease-in-out text-gray-800 placeholder-gray-500" // Themed input
               required
-              autoComplete="email" // Add autocomplete
+              autoComplete="email" 
             />
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-2 text-sm"> {/* Themed label */}
+            <label className="block text-gray-700 font-semibold mb-2 text-sm"> 
               Password
             </label>
             <input
@@ -183,20 +180,20 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-150 ease-in-out text-gray-800 placeholder-gray-500" // Themed input
               required
-              autoComplete="current-password" // Add autocomplete
+              autoComplete="current-password" 
             />
           </div>
 
           {/* Remember Me + Forgot Password */}
           <div className="flex items-center justify-between">
-            <label className="flex items-center text-gray-600 text-sm"> {/* Themed text */}
+            <label className="flex items-center text-gray-600 text-sm"> 
               <input
                 type="checkbox"
-                className="mr-2 form-checkbox text-teal-600 focus:ring-teal-500 rounded" // Themed checkbox
+                className="mr-2 form-checkbox text-teal-600 focus:ring-teal-500 rounded" 
               />
               Remember Me
             </label>
-            <Link to="/forgot-password" className="text-teal-600 hover:text-teal-800 text-sm font-medium transition-colors"> {/* Themed link */}
+            <Link to="/forgot-password" className="text-teal-600 hover:text-teal-800 text-sm font-medium transition-colors"> 
               Forgot Password?
             </Link>
           </div>
@@ -214,10 +211,10 @@ export default function Login() {
         </form>
 
         {/* Link to Signup */}
-        <div className="text-center mt-8"> {/* Increased top margin */}
-          <p className="text-sm text-gray-600"> {/* Themed text */}
+        <div className="text-center mt-8"> 
+          <p className="text-sm text-gray-600"> 
             Don't have an account?{' '}
-            <Link to="/signup" className="text-teal-600 hover:text-teal-800 font-semibold transition-colors"> {/* Themed link */}
+            <Link to="/signup" className="text-teal-600 hover:text-teal-800 font-semibold transition-colors"> 
               Sign up
             </Link>
           </p>

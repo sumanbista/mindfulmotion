@@ -1,4 +1,3 @@
-// backend/routes/chatRoutes.js
 const express = require('express');
 const jwt     = require('jsonwebtoken');
 const { Groq }= require('groq-sdk');

@@ -38,7 +38,6 @@ router.post('/', async (req, res) => {
 });
 
 
-// Optional: Get past assessments for the authenticated user
 router.get('/', async (req, res) => {
     try {
       const assessments = await UserAssessment.find({ userId: req.user._id }).sort({ createdAt: -1 });

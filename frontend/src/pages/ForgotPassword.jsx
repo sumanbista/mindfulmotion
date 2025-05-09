@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../../firebase/config';
+import { useToast } from '../contexts/ToastContext';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const { showSuccess, showError } = useToast(); // Use toast context
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
@@ -17,20 +19,25 @@ export default function ForgotPassword() {
     try {
       await sendPasswordResetEmail(auth, email);
       setResetSent(true);
+      showSuccess('Password reset email sent successfully!');
     } catch (error) {
       console.error('Password reset error:', error);
       switch (error.code) {
         case 'auth/user-not-found':
           setError('No account found with this email. Please sign up first.');
+          showError('No account found with this email. Please sign up first.');
           break;
         case 'auth/invalid-email':
           setError('Please enter a valid email address.');
+          showError('Please enter a valid email address.'); 
           break;
         case 'auth/too-many-requests':
           setError('Too many failed attempts. Please try again later.');
+          showError('Too many failed attempts. Please try again later.'); 
           break;
         default:
           setError('Unable to send reset email. Please check your internet connection and try again.');
+          showError('Unable to send reset email. Please check your internet connection and try again.'); 
       }
     } finally {
       setLoading(false);
@@ -105,4 +112,4 @@ export default function ForgotPassword() {
       </div>
     </div>
   );
-} 
+}

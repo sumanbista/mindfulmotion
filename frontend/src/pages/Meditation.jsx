@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SessionCard from '../components/SessionCard';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../../firebase/config'; // Assuming firebase auth is correctly imported
+import { auth } from '../../firebase/config'; 
 
 export default function Meditation() {
   const [sessions, setSessions] = useState([]);
@@ -12,7 +12,7 @@ export default function Meditation() {
   // pagination + filter state
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const sessionsPerPage = 6; // Define how many sessions per page
+  const sessionsPerPage = 6;
 
   const categories = ['all', 'relax', 'focus', 'sleep', 'energy', 'mindfulness'];
   const navigate = useNavigate();
@@ -30,9 +30,8 @@ export default function Meditation() {
   useEffect(() => {
     const loadSessions = async () => {
       setLoading(true);
-      setError(null); // Clear previous errors
+      setError(null);
       try {
-        // Ensure auth state is ready before getting token
         const user = auth.currentUser;
         if (!user) {
           setError('You must be logged in to access meditation sessions.');
@@ -90,19 +89,19 @@ export default function Meditation() {
 
   // Display loading state
   if (loading) return (
-    <div className="min-h-screen flex justify-center items-center bg-emerald-50"> {/* Themed background */}
+    <div className="min-h-screen flex justify-center items-center bg-emerald-50"> 
       <div className="text-center">
-        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-teal-600"></div> {/* Themed spinner */}
-        <p className="mt-4 text-gray-700 text-lg">Loading meditation sessions...</p> {/* Themed text */}
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-teal-600"></div> 
+        <p className="mt-4 text-gray-700 text-lg">Loading meditation sessions...</p> 
       </div>
     </div>
   );
 
   // Display error state
   if (error) return (
-    <div className="min-h-screen flex justify-center items-center bg-emerald-50"> {/* Themed background */}
-      <div className="text-center p-6 bg-white rounded-lg shadow-md border border-red-300"> {/* Themed error container */}
-        <p className="text-red-700 font-semibold mb-4">{error}</p> {/* Themed error text */}
+    <div className="min-h-screen flex justify-center items-center bg-emerald-50"> 
+      <div className="text-center p-6 bg-white rounded-lg shadow-md border border-red-300"> 
+        <p className="text-red-700 font-semibold mb-4">{error}</p> 
         <button
           onClick={() => navigate('/login')}
           className="px-6 py-3 bg-teal-600 text-white font-semibold rounded-lg shadow hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 transition duration-150 ease-in-out" 
@@ -123,12 +122,12 @@ export default function Meditation() {
   const total = Math.ceil(filtered.length / sessionsPerPage);
 
   return (
-    <div className="min-h-screen bg-emerald-50 py-8"> {/* Themed background and vertical padding */}
-      <div className="container mx-auto px-4"> {/* Centered container with horizontal padding */}
-        <h1 className="text-3xl font-bold text-center mb-8 text-teal-800">Meditation Sessions</h1> {/* Themed main title */}
+    <div className="min-h-screen bg-emerald-50 py-8"> 
+      <div className="container mx-auto px-4"> 
+        <h1 className="text-3xl font-bold text-center mb-8 text-teal-800">Meditation Sessions</h1>
 
         {/* Category pills */}
-        <div className="flex flex-wrap justify-center gap-3 mb-8"> {/* Themed container, added wrap and center */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
           {categories.map(cat => (
             <button
               key={cat}
@@ -136,8 +135,8 @@ export default function Meditation() {
               className={
                 `px-4 py-2 rounded-full font-semibold text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 ${
                   cat === selectedCategory
-                    ? 'bg-teal-600 text-white shadow-md' // Themed active state
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300' // Themed default/hover state
+                    ? 'bg-teal-600 text-white shadow-md' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
                 }`
               }
             >
@@ -152,23 +151,22 @@ export default function Meditation() {
                  No sessions found for the selected category.
              </div>
         ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"> {/* Adjusted grid for smaller screens */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"> 
               {page.map(session => (
                 <SessionCard
                   key={session._id}
-                  id={session._id} // Pass id explicitly
+                  id={session._id} 
                   title={session.title}
                   focus={session.focus}
                   rating={session.rating}
-                  userRating={session.userRating} // Pass userRating
+                  userRating={session.userRating} 
                   videoId={session.videoId}
                   backgroundImage={categoryImages[session.focus.toLowerCase()] || '/images/meditation/default.png'}
                   currentlyPlaying={currentlyPlaying}
                   setCurrentlyPlaying={setCurrentlyPlaying}
-                  onRatingChange={(sessionId, newRating) => { // Match handler signature
-                    // POST rating to backend
-                    // Assuming token logic is handled in SessionCard or here before calling API
-                     const token = localStorage.getItem('token') // Or get from auth.currentUser
+                  onRatingChange={(sessionId, newRating) => { 
+                    
+                    const token = auth.currentUser?.getIdToken();
                     fetch(`http://localhost:5000/api/sessions/${sessionId}/ratings`, {
                       method: 'POST',
                       headers: {
@@ -184,8 +182,8 @@ export default function Meditation() {
                          }
                          return r.json();
                        })
-                      .then(({ averageRating, userRating: newUserRating }) => { // Receive new user rating too
-                        // update UI optimistically by finding and modifying the session
+                      .then(({ averageRating, userRating: newUserRating }) => { 
+                        
                         setSessions(prevSessions =>
                             prevSessions.map(s =>
                                 s._id === sessionId
@@ -193,12 +191,12 @@ export default function Meditation() {
                                     : s
                             )
                         );
-                       // Optional: Show a small success message
+                     
                       })
                       .catch(e => {
                          console.error("Error submitting rating:", e);
-                         alert(`Failed to submit rating: ${e.message || 'Network error'}`); // Inform user
-                         // Optional: Revert optimistic update if failed
+                         alert(`Failed to submit rating: ${e.message || 'Network error'}`); 
+                         
                       });
                   }}
                 />
@@ -209,8 +207,8 @@ export default function Meditation() {
 
         {/* Pagination controls */}
         {total > 1 && (
-          <div className="flex justify-center items-center mt-8 gap-2"> {/* Themed container */}
-             <span className="text-gray-700 text-sm">Page {currentPage} of {total}</span> {/* Page indicator */}
+          <div className="flex justify-center items-center mt-8 gap-2"> 
+             <span className="text-gray-700 text-sm">Page {currentPage} of {total}</span> 
              <button
                onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
                disabled={currentPage === 1}
@@ -220,19 +218,17 @@ export default function Meditation() {
                 ‹
              </button>
 
-            {/* Simple page numbers (can enhance later) */}
             {/* Display only a limited range of page numbers around current page */}
             {Array.from({length: total}, (_, i) => i + 1)
-                // Optional: filter pages to show for cleaner look with many pages
-                // .filter(pageNum => pageNum === 1 || pageNum === total || (pageNum >= currentPage - 2 && pageNum <= currentPage + 2))
+                
                 .map(n => (
                <button
                  key={n}
                  onClick={() => setCurrentPage(n)}
                  className={`px-4 py-2 rounded-lg font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50 ${
-                   n === currentPage ? 'bg-teal-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' // Themed buttons
+                   n === currentPage ? 'bg-teal-600 text-white shadow-md' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                  }`}
-                 aria-current={n === currentPage ? 'page' : undefined} // Accessibility
+                 aria-current={n === currentPage ? 'page' : undefined} 
                >
                  {n}
                </button>
@@ -241,7 +237,7 @@ export default function Meditation() {
             <button
               onClick={() => currentPage < total && setCurrentPage(currentPage + 1)}
               disabled={currentPage === total}
-              className="px-4 py-2 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400" // Themed button
+              className="px-4 py-2 rounded-lg font-semibold transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400"
               aria-label="Next page"
             >
               ›

@@ -4,8 +4,11 @@ import WellnessForm from './WellnessForm';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { auth } from '../../firebase/config';
+import { useToast } from '../contexts/ToastContext';
 
 const AssessmentForm = () => {
+  const { showSuccess, showError } = useToast(); // Use toast context
+
   const [formData, setFormData] = useState({
     mentalHealth: {
       depression: null, // Use null initially to indicate not answered
@@ -61,7 +64,7 @@ const AssessmentForm = () => {
 
   const handleNextStep = () => {
       if (!isStepValid()) {
-          alert('Please answer all questions before proceeding.');
+          showError('Please answer all questions before proceeding.'); // Show error toast
           return;
       }
       setError(null); // Clear previous errors
@@ -77,7 +80,7 @@ const AssessmentForm = () => {
     e.preventDefault();
 
     if (!isStepValid()) {
-        alert('Please answer all questions before submitting.');
+        showError('Please answer all questions before submitting.'); // Show error toast
         return;
     }
 
@@ -89,7 +92,7 @@ const AssessmentForm = () => {
       console.log('Token being sent:', token); // Debug log to verify token
     
       if (!token) {
-        alert('Please log in.');
+        showError('Please log in.'); // Show error toast
         navigate('/login');
         return;
       }
@@ -111,16 +114,18 @@ const AssessmentForm = () => {
 
       if (response.ok) {
         setAssessmentResult(data); // Set result to show results view
-        // Don't navigate automatically, show result on the page
+        showSuccess('Assessment submitted successfully!'); // Show success toast
       } else {
          // Handle specific backend errors if needed
          // Display error message on the form
          setError(data.message || 'An error occurred during submission.');
+         showError(data.message || 'An error occurred during submission.'); // Show error toast
          // Optionally stay on the submit step or show a generic error page
       }
     } catch (error) {
       console.error('Submission Error:', error);
       setError('An error occurred while submitting the assessment.');
+      showError('An error occurred while submitting the assessment.'); // Show error toast
       // Optionally stay on the submit step or show a generic error page
     } finally {
       setIsSubmitting(false);

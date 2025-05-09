@@ -4,17 +4,12 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const admin = require('firebase-admin');
-// const serviceAccount = require('../backend/firebaseServiceAccountKey.json');
-// console.log(serviceAccount)
 
-// admin.initializeApp({
-//   credential: admin.credential.cert(serviceAccount),
-// });
 
 const userRoutes = require('./routes/userRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const communityRoutes = require('./routes/communityRoutes');
-// const assessmentRoutes = require('./routes/assessmentRoutes');
+
 const assessmentAnalysisRoutes = require('./routes/assessmentAnalysis');
 const UserAssessment = require('./models/UserAssessment');
 const chatRoutes = require('./routes/chatRoutes');
@@ -23,7 +18,7 @@ const app = express();
 
 // Middlewares
 const corsOptions = {
-  origin: 'http://localhost:5173', // Update this to match your frontend's URL
+  origin: 'http://localhost:5173', 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
@@ -59,9 +54,6 @@ app.use('/api/sessions', sessionRoutes);
 console.log('→ mounting communityRoutes') 
 app.use('/api/community', communityRoutes);
 
-
-// Assessment Route (for collecting personality and mental health data)
-// app.use('/api/assessment', assessmentRoutes);  // Assuming the assessmentRoutes are handled in a separate file
 app.use('/api/assessment', assessmentAnalysisRoutes);
 
 // Route to get past user assessments
@@ -88,8 +80,5 @@ app.use('/api/aichat', chatRoutes);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  // console.log('Available categories:', Object.keys(categoryVideos));
-  // console.log('Available endpoints:');
-  // console.log('- GET /api/videos/:category');
-  // console.log('- GET /api/embeds');
+ 
 });

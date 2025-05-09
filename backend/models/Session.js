@@ -21,7 +21,7 @@ const sessionSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
-   // Instead of embedUrl, you could store the entire embed HTML or just the video ID
+ 
   //  embedHtml: {
   //   type: String,
   //   default: '',

@@ -3,7 +3,7 @@ const router = express.Router();
 const Session = require('../models/Session');
 const authMiddleware = require('../middleware/authMiddleware');
 
-// Get all sessions (protected route example)
+// Get all sessions
 router.get('/', authMiddleware, async (req, res) => {
   try {
     const sessions = await Session.find({});
@@ -13,7 +13,7 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// Create a session (could be restricted to admin users)
+// Create a session 
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { title, duration, focus, rating, embedHtml } = req.body;
@@ -55,7 +55,7 @@ router.get('/:sessionId/ratings', async (req, res) => {
 router.post('/:sessionId/ratings', async (req, res) => {
   try {
     const sessionId = req.params.sessionId
-    const userId    = req.user._id         // ← comes from your JWT middleware
+    const userId    = req.user._id        
     const { rating } = req.body
 
     if (rating == null) {

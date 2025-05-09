@@ -75,10 +75,9 @@ const WellnessForm = ({ formData, handleChange }) => {
       <h3 className="text-2xl font-bold text-teal-700 mb-6">Wellness Check</h3>
 
       {questions.map((q, index) => (
-        // Added styling for each question block
-         <div key={q.name} className={`p-5 border border-gray-200 rounded-lg bg-white ${index < questions.length -1 ? 'mb-6' : ''}`}> {/* Added padding, border, background, margin */}
-            <p className="text-lg font-medium text-gray-700 mb-4">{q.text}</p> {/* Adjusted margin */}
-            <div className="flex flex-col space-y-3"> {/* Increased space between options */}
+         <div key={q.name} className={`p-5 border border-gray-200 rounded-lg bg-white ${index < questions.length -1 ? 'mb-6' : ''}`}>
+            <p className="text-lg font-medium text-gray-700 mb-4">{q.text}</p>
+            <div className="flex flex-col space-y-3">
                 {q.options.map(option => (
                     <label key={option.value} className="inline-flex items-center cursor-pointer text-gray-800 hover:text-teal-600 transition duration-150 ease-in-out">
                         <input

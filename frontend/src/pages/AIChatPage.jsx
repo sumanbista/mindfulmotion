@@ -4,7 +4,7 @@ import { useNavigate }           from 'react-router-dom';
 import ChatSessionsList          from '../components/ChatSessionsList';
 import ChatHistoryPanel         from '../components/ChatHistoryPanel';
 import ChatInput                from '../components/ChatInput';
-import { auth } from '../../firebase/config'; // Import Firebase auth
+import { auth } from '../../firebase/config'; 
 
 export default function AIChatPage() {
   const [sessions, setSessions]       = useState([]);
@@ -117,13 +117,12 @@ export default function AIChatPage() {
       });
       const { sessionId: newSid, reply } = await res.json();
 
-      // if backend spun up a new session for us, adopt it
+      
       if (!currentSession && newSid) {
         setCurrent({ _id: newSid, createdAt: new Date().toISOString() });
-        // optionally refresh sessions list…
+      
       }
 
-      // append to UI immediately
       setHistory(h => [
         ...h,
         { role: 'user',      text,      createdAt: new Date().toISOString() },

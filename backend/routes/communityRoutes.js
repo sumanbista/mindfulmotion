@@ -1,6 +1,6 @@
 const express = require('express');
 const Post = require('../models/Post');
-const User = require('../models/User'); // Import user model
+const User = require('../models/User'); 
 const protect = require('../middleware/authMiddleware');
 const router = express.Router();
 
@@ -8,8 +8,8 @@ const router = express.Router();
 console.log('→ mounting communityRoutes') 
 router.get('/', protect, async (req, res) => {
   try {
-    console.log('Fetching posts from the database...');
-    console.log('Authenticated User:', req.user); // Log the authenticated user
+    // console.log('Fetching posts from the database...');
+    // console.log('Authenticated User:', req.user); 
 
     const posts = await Post.find()
       .sort({ createdAt: -1 })
@@ -17,7 +17,7 @@ router.get('/', protect, async (req, res) => {
       .populate('comments.userId', 'name') // Ensure we are populating the correct field
       .lean();
 
-    console.log('Fetched Posts:', posts); // Log the fetched posts
+    // console.log('Fetched Posts:', posts); 
 
     // format author, loves count, comments…
     const formatted = posts.map(post => ({
@@ -26,7 +26,7 @@ router.get('/', protect, async (req, res) => {
       loves: post.loves.length,
       comments: post.comments.map(c => ({
         ...c,
-        author: c.userId?.name || 'Anonymous', // Safely access `name` and fallback to 'Anonymous'
+        author: c.userId?.name || 'Anonymous', 
       }))
     }));
 

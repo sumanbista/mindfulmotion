@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { auth } from '../../firebase/config';
+import { useToast } from '../contexts/ToastContext';
 
 const PostCard = ({
   post,
@@ -11,20 +13,21 @@ const PostCard = ({
   const [showComments, setShowComments] = useState(false);
   const [newCommentText, setNewCommentText] = useState(''); // Managed locally per post
   const [isAddingComment, setIsAddingComment] = useState(false); // State for comment button loading
+  const { showSuccess, showError } = useToast(); // Use toast context
 
   // Add a comment to this specific post
   const handleAddComment = async () => {
     if (newCommentText.trim() === '' || isAddingComment) return;
 
     if (!isAuthenticated) {
-       alert('You must be logged in to comment.'); // Use alert for simple auth check here
-       return;
+      showError('You must be logged in to comment.'); // Show error toast
+      return;
     }
 
     setIsAddingComment(true); // Start loading state
 
     try {
-      const token = localStorage.getItem('token');
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch(`http://localhost:5000/api/community/${post._id}/comments`, {
         method: 'POST',
         headers: {
@@ -40,15 +43,14 @@ const PostCard = ({
         setNewCommentText(''); // Clear input on success
         setShowComments(true); // Automatically show comments after adding
         onCommentAdded(); // Trigger refetch in parent component
-        // Optional: Optimistically add comment here if refetch is slow,
-        // but refetch ensures correct state across all posts/stats.
+        showSuccess('Comment added successfully!'); // Show success toast
       } else {
         // Handle specific backend errors
-        alert(data.message || 'Failed to add comment.'); // Simple error display
+        showError(data.message || 'Failed to add comment.'); // Show error toast
       }
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('Network error when adding comment.');
+      showError('Network error when adding comment.'); // Show error toast
     } finally {
        setIsAddingComment(false); // End loading state
     }
