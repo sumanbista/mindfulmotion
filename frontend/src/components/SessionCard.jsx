@@ -155,13 +155,16 @@ export default function SessionCard({
     
     // Clean up when the component unmounts or when the session changes
     return () => {
-      if (playing && playerRef.current && typeof playerRef.current.internalPlayer?.stopVideo === 'function') {
-        try {
+      try {
+        if (playing && 
+            playerRef.current && 
+            playerRef.current.internalPlayer && 
+            typeof playerRef.current.internalPlayer.stopVideo === 'function') {
           playerRef.current.internalPlayer.stopVideo();
           playerRef.current = null;
-        } catch (error) {
-          console.error("Error cleaning up video player:", error);
         }
+      } catch (error) {
+        console.error("Error cleaning up video player:", error);
       }
     };
   }, [currentlyPlaying, cardId, playing]); // Dependencies
@@ -173,43 +176,51 @@ export default function SessionCard({
       return;
     }
     
-    // If there's already a video playing somewhere, make sure to reset the global state
-    if (currentlyPlaying !== null && currentlyPlaying !== cardId) {
-      // Signal to other cards that they should stop
-      setCurrentlyPlaying(null);
-      
-      // Wait a small amount of time for other players to clean up
-      setTimeout(() => {
+    try {
+      // If there's already a video playing somewhere, make sure to reset the global state
+      if (currentlyPlaying !== null && currentlyPlaying !== cardId) {
+        // Signal to other cards that they should stop
+        setCurrentlyPlaying(null);
+        
+        // Wait a small amount of time for other players to clean up
+        setTimeout(() => {
+          setPlaying(true);
+          setCurrentlyPlaying(cardId); // Notify parent this card is playing
+        }, 100); // Increased timeout to ensure proper cleanup
+      } else {
+        // Normal play case when nothing else is playing
         setPlaying(true);
         setCurrentlyPlaying(cardId); // Notify parent this card is playing
-      }, 50);
-    } else {
-      // Normal play case when nothing else is playing
-      setPlaying(true);
-      setCurrentlyPlaying(cardId); // Notify parent this card is playing
+      }
+    } catch (error) {
+      console.error("Error in play handler:", error);
     }
   };
 
   // Handle stop action
   const handleStop = () => {
-     if (!playing) return; // Only stop if currently playing
+    if (!playing) return; // Only stop if currently playing
 
     setPlaying(false);
     if (currentlyPlaying === cardId) {
       setCurrentlyPlaying(null); // Notify parent this card stopped
     }
-    // Stop the actual YouTube player
-    if (playerRef.current && typeof playerRef.current.internalPlayer.stopVideo === 'function') {
-      try {
+    
+    // Stop the actual YouTube player with thorough null checking
+    try {
+      if (playerRef.current && 
+          playerRef.current.internalPlayer && 
+          typeof playerRef.current.internalPlayer.stopVideo === 'function') {
         playerRef.current.internalPlayer.stopVideo();
         // Release the player reference to avoid memory leaks and issues with subsequent plays
         setTimeout(() => {
           playerRef.current = null;
         }, 100);
-      } catch (error) {
-        console.error("Error stopping video:", error);
       }
+    } catch (error) {
+      console.error("Error stopping video:", error);
     }
+    
     // Show rating modal after stopping
     setShowRatingModal(true);
   };
@@ -223,8 +234,16 @@ export default function SessionCard({
 
   // YouTube player ready handler
   const onReady = (event) => {
-    playerRef.current = event.target; // Store player instance
-    // Player is ready, it should autoplay based on opts if handlePlay was called
+    try {
+      // Store player instance with validation
+      if (event && event.target) {
+        playerRef.current = event.target;
+      } else {
+        console.warn('YouTube player ready event missing target');
+      }
+    } catch (error) {
+      console.error("Error in YouTube player ready handler:", error);
+    }
   };
 
   // YouTube player error handler

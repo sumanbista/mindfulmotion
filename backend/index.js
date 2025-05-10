@@ -17,7 +17,7 @@ const app = express();
 const allowedOrigins = [
   'https://mindfulmotion.vercel.app',
   'https://mindfulmotion.netlify.app',
-  'http://localhost:5173' // For local development
+  'http://localhost:5173' 
 ];
 
 app.use(cors({
