@@ -1,4 +1,3 @@
-// src/components/ChatMessage.jsx
 import React from 'react';
 
 export default function ChatMessage({ sender, text }) {

@@ -28,7 +28,7 @@ const PostCard = ({
 
     try {
       const token = await auth.currentUser?.getIdToken();
-      const response = await fetch(`http://localhost:5000/api/community/${post._id}/comments`, {
+      const response = await fetch(`https://mindfulmotion.vercel.app/api/community/${post._id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

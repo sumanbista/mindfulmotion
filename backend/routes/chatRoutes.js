@@ -41,46 +41,52 @@ router.get('/history/:sessionId', async (req, res) => {
 });
 
 // 4) Send a message (creates session if none), call AI, persist both
-//    POST /api/aichat/send
 router.post('/send', async (req, res) => {
-  let { sessionId, text } = req.body;
-  text = (text || '').trim();
-  if (!text) return res.status(400).json({ message: 'Text is required' });
- // Extract userId from the authenticated user
- const userId = req.user._id;
-  // 4a) If no sessionId, create one
-  if (!sessionId) {
-    const newSession = await ChatSession.create({
-      userId,
-      title: text.slice(0,50)  // first words as title
+  try {
+    let { sessionId, text } = req.body;
+    text = (text || '').trim();
+    if (!text) return res.status(400).json({ message: 'Text is required' });
+
+    const userId = req.user._id;
+
+    // If no session, create one
+    if (!sessionId) {
+      const newSession = await ChatSession.create({
+        userId,
+        title: text.slice(0, 50),
+      });
+      sessionId = newSession._id;
+    }
+
+    // Save user message
+    await ChatMessage.create({ sessionId, role: 'user', text });
+
+    // Call Groq LLM
+    const completion = await groq.chat.completions.create({
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      messages: [
+        { role: 'system', content: 'You are an expert mental-health counselor.' },
+        { role: 'user', content: text },
+      ],
+      temperature: 0.8,
+      max_completion_tokens: 512,
+      stream: false,
     });
-    sessionId = newSession._id;
+
+    const reply = completion.choices?.[0]?.message?.content || "I'm sorry, I can't respond right now.";
+
+    // Save assistant reply
+    await ChatMessage.create({ sessionId, role: 'assistant', text: reply });
+
+    // Update session timestamp
+    await ChatSession.findByIdAndUpdate(sessionId, {}, { timestamps: true });
+
+    res.json({ sessionId, reply });
+  } catch (error) {
+    console.error(' Error in /api/aichat/send:', error); 
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // 4b) Persist user message
-  await ChatMessage.create({ sessionId, role: 'user', text });
-
-  // 4c) Call the LLM
-  const completion = await groq.chat.completions.create({
-    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-    messages: [
-      { role: 'system', content: 'You are an expert mental-health counselor.' },
-      { role: 'user',   content: text }
-    ],
-    temperature: 0.8,
-    max_completion_tokens: 512,
-    stream: false
-  });
-
-  const reply = completion.choices?.[0]?.message?.content || 'I\'m sorry, I can’t respond right now.';
-
-  // 4d) Persist assistant reply
-  await ChatMessage.create({ sessionId, role: 'assistant', text: reply });
-
-  // 4e) Touch session’s updatedAt so it shows first in list
-  await ChatSession.findByIdAndUpdate(sessionId, {}, { timestamps: true });
-
-  res.json({ sessionId, reply });
 });
+
 
 module.exports = router;

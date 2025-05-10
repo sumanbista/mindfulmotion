@@ -1,13 +1,12 @@
-// src/components/FeatureCard.jsx
 import React from 'react';
 
-// A simple, modern Feature Card component with themed styling
+
 function FeatureCard({ image, title, subtitle, buttonText, onButtonClick, progress }) {
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 flex flex-col md:flex-row items-center border border-gray-200"> {/* Themed container with shadow and border */}
       {/* Image */}
       {image && (
-        <div className="w-full md:w-1/2 h-40 overflow-hidden"> {/* Added overflow hidden */}
+        <div className="w-full md:w-1/2 h-40 overflow-hidden">
           <img
             src={image}
             alt={title}
@@ -16,17 +15,16 @@ function FeatureCard({ image, title, subtitle, buttonText, onButtonClick, progre
         </div>
       )}
 
-      {/* Content (Title, Subtitle, Progress, Button) */}
       <div className={`w-full ${image ? 'md:w-1/2 pl-0 md:pl-6' : ''} flex flex-col items-center ${image ? 'md:items-start' : 'md:items-center'}`}> {/* Conditional padding/alignment */}
-        <h2 className="text-xl font-semibold mb-2 text-center md:text-left text-teal-700">{title}</h2> {/* Themed title */}
-        {subtitle && <p className="text-gray-600 text-center md:text-left mb-4 text-base">{subtitle}</p>} {/* Themed subtitle */}
+        <h2 className="text-xl font-semibold mb-2 text-center md:text-left text-teal-700">{title}</h2> 
+        {subtitle && <p className="text-gray-600 text-center md:text-left mb-4 text-base">{subtitle}</p>} 
 
         {/* Progress Bar */}
         {typeof progress === 'number' && (
-          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4"> {/* Slightly thinner progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4"> 
             <div
               className="bg-emerald-600 h-2.5 rounded-full" 
-              style={{ width: `${progress > 100 ? 100 : progress < 0 ? 0 : progress}%` }} // Ensure progress is within [0, 100]
+              style={{ width: `${progress > 100 ? 100 : progress < 0 ? 0 : progress}%` }} 
             ></div>
           </div>
         )}
