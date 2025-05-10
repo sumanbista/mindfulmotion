@@ -15,9 +15,19 @@ const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
-// Middlewares
+const allowedOrigins = [
+  'https://mindfulmotion.vercel.app',
+  'https://mindfulmotion.netlify.app'
+];
+
 const corsOptions = {
-  origin: 'https://mindfulmotion.vercel.app/', 
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
