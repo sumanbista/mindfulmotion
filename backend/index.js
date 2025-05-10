@@ -4,35 +4,41 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const admin = require('firebase-admin');
 
-
 const userRoutes = require('./routes/userRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const communityRoutes = require('./routes/communityRoutes');
-
 const assessmentAnalysisRoutes = require('./routes/assessmentAnalysis');
 const UserAssessment = require('./models/UserAssessment');
 const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 
+
 const allowedOrigins = [
   'https://mindfulmotion.vercel.app',
-  'https://mindfulmotion.netlify.app'
+  'https://mindfulmotion.netlify.app',
+  'http://localhost:5173' // For local development
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+app.use(cors({
+  origin: function(origin, callback) {
+    
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
+    return callback(null, true);
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
+}));
 
-app.use(cors(corsOptions));
+// Add OPTIONS handling for preflight requests
+app.options('*', cors());
+
 app.use(express.json());
 
 // Connect to MongoDB
@@ -42,7 +48,6 @@ mongoose.connect(process.env.MONGO_URI, {
 })
   .then(() => console.log('Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
-
 
 app.get('/api/quote', async (req, res) => {
   try {
@@ -60,9 +65,7 @@ app.get('/api/quote', async (req, res) => {
 
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
- 
 app.use('/api/community', communityRoutes);
-
 app.use('/api/assessment', assessmentAnalysisRoutes);
 
 // Route to get past user assessments
@@ -84,9 +87,7 @@ app.get('/api/assessment/:userId', async (req, res) => {
 
 app.use('/api/aichat', chatRoutes);
 
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
- 
 });

@@ -5,7 +5,7 @@ const protect = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Get all posts
-console.log('→ mounting communityRoutes') 
+// console.log('→ mounting communityRoutes') 
 router.get('/', protect, async (req, res) => {
   try {
     // console.log('Fetching posts from the database...');
@@ -40,8 +40,8 @@ router.get('/', protect, async (req, res) => {
 // Create a new post
 router.post('/', protect, async (req, res) => {
   try {
-    console.log('Request Headers:', req.headers);
-    console.log('Decoded User in communityRoutes:', req.user);
+    // console.log('Request Headers:', req.headers);
+    // console.log('Decoded User in communityRoutes:', req.user);
     const { content } = req.body;
     if (!content.trim()) {
       return res.status(400).json({ message: 'Post content is required' });
@@ -72,8 +72,8 @@ router.post('/', protect, async (req, res) => {
 // Add comment to a post
 router.post('/:postId/comments', protect, async (req, res) => {
   try {
-    console.log('Request Headers:', req.headers);
-    console.log('Decoded User in communityRoutes:', req.user);
+    // console.log('Request Headers:', req.headers);
+    // console.log('Decoded User in communityRoutes:', req.user);
     const { text } = req.body;
     const { postId } = req.params;
     
@@ -112,8 +112,8 @@ router.post('/:postId/comments', protect, async (req, res) => {
 // Toggle love reaction
 router.put('/:postId/love', protect, async (req, res) => {
   try {
-    console.log('Request Headers:', req.headers);
-    console.log('Decoded User in communityRoutes:', req.user);
+    // console.log('Request Headers:', req.headers);
+    // console.log('Decoded User in communityRoutes:', req.user);
     const { postId } = req.params;
     const userId = req.user.userId;
 

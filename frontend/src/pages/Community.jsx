@@ -36,9 +36,9 @@ export default function Community() {
             Authorization: `Bearer ${token}`
           }
         });
-        console.log('Request Headers:', {
-          Authorization: `Bearer ${token}`
-        });
+        // console.log('Request Headers:', {
+        //   Authorization: `Bearer ${token}`
+        // });
         if (res.status === 401) {
           setError('You are not authorized to access this. Please sign up or log in.');
           return;
@@ -59,7 +59,7 @@ export default function Community() {
     const checkAuthentication = async () => {
       try {
         const token = await auth.currentUser?.getIdToken();
-        console.log('Token:', token);
+        // console.log('Token:', token);
         if (token) {
           setIsAuthenticated(true);
           setUser(auth.currentUser); // Set the user object

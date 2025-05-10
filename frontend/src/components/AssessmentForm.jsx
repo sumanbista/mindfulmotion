@@ -89,7 +89,7 @@ const AssessmentForm = () => {
 
     try {
       const token = await auth.currentUser.getIdToken();
-      console.log('Token being sent:', token); // Debug log to verify token
+      // console.log('Token being sent:', token); // Debug log to verify token
     
       if (!token) {
         showError('Please log in.'); // Show error toast
@@ -97,7 +97,7 @@ const AssessmentForm = () => {
         return;
       }
 
-      console.log('Token being sent:', token); // Debug log to verify token
+      // console.log('Token being sent:', token); // Debug log to verify token
 
       const response = await fetch('https://mindfulmotion.vercel.app/api/assessment/analyze', {
         method: 'POST',

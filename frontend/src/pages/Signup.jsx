@@ -112,7 +112,7 @@ export default function Signup() {
              navigate('/login', { state: { signupError: error || 'Account created, but verification email failed.' } });
        }
 
-      console.log('User signed up and profile updated:', user);
+      // console.log('User signed up and profile updated:', user);
 
     } catch (error) {
       console.error('Signup error:', error);

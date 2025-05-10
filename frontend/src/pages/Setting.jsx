@@ -325,7 +325,7 @@ const Settings = () => {
   };
 
   const handleNotificationChange = (type) => {
-     console.log(`Toggling notification: ${type}`);
+    //  console.log(`Toggling notification: ${type}`);
      setNotifications(prev => ({
        ...prev,
        [type]: !prev[type]
@@ -333,7 +333,7 @@ const Settings = () => {
    };
 
    const handlePrivacyChange = (type, value) => {
-     console.log(`Changing privacy setting: ${type} to ${value}`);
+    //  console.log(`Changing privacy setting: ${type} to ${value}`);
      setPrivacy(prev => ({
        ...prev,
        [type]: value
