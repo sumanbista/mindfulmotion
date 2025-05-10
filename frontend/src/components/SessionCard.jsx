@@ -152,6 +152,18 @@ export default function SessionCard({
       // If another card started playing, stop this one
       handleStop(); // Use the internal stop handler
     }
+    
+    // Clean up when the component unmounts or when the session changes
+    return () => {
+      if (playing && playerRef.current && typeof playerRef.current.internalPlayer?.stopVideo === 'function') {
+        try {
+          playerRef.current.internalPlayer.stopVideo();
+          playerRef.current = null;
+        } catch (error) {
+          console.error("Error cleaning up video player:", error);
+        }
+      }
+    };
   }, [currentlyPlaying, cardId, playing]); // Dependencies
 
   // Handle play action
@@ -160,9 +172,22 @@ export default function SessionCard({
       console.warn("No valid video ID available for this session:", videoId);
       return;
     }
-    setPlaying(true);
-    setCurrentlyPlaying(cardId); // Notify parent this card is playing
-    // The useEffect hook will handle stopping others
+    
+    // If there's already a video playing somewhere, make sure to reset the global state
+    if (currentlyPlaying !== null && currentlyPlaying !== cardId) {
+      // Signal to other cards that they should stop
+      setCurrentlyPlaying(null);
+      
+      // Wait a small amount of time for other players to clean up
+      setTimeout(() => {
+        setPlaying(true);
+        setCurrentlyPlaying(cardId); // Notify parent this card is playing
+      }, 50);
+    } else {
+      // Normal play case when nothing else is playing
+      setPlaying(true);
+      setCurrentlyPlaying(cardId); // Notify parent this card is playing
+    }
   };
 
   // Handle stop action
@@ -177,6 +202,10 @@ export default function SessionCard({
     if (playerRef.current && typeof playerRef.current.internalPlayer.stopVideo === 'function') {
       try {
         playerRef.current.internalPlayer.stopVideo();
+        // Release the player reference to avoid memory leaks and issues with subsequent plays
+        setTimeout(() => {
+          playerRef.current = null;
+        }, 100);
       } catch (error) {
         console.error("Error stopping video:", error);
       }
